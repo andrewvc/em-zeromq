@@ -1,8 +1,8 @@
-## em-zeromq ##
+# em-zeromq #
 
 Low level event machine support for ZeroMQ
 
-# DESCRIPTION: #
+## DESCRIPTION: ##
 
 WARNING THIS IS ALPHA QUALITY AT THE MOMENT
 
@@ -10,7 +10,7 @@ A minimal test case passes, the basics of this are working.
 It needs work for sure, for instance, you cannot remove a socket yet
 
 
-# Using: #
+## Using: ##
 
 You must use either rubinius, jruby, or 1.9.x rubies. 1.8.7 unfixable issues.
 
@@ -25,7 +25,8 @@ Run the specs, see specs for examples
 
 Want to help out? Ask! Much work to be done here
 
-# Example
+## Example ##
+
     require 'rubygems'
     require 'em-zeromq'
         
@@ -53,7 +54,7 @@ Want to help out? Ask! Much work to be done here
       }
     end
 
-# LICENSE: #
+## LICENSE: ##
 
 (The MIT License)
 
