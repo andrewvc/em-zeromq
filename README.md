@@ -2,7 +2,7 @@
 
 Low level event machine support for ZeroMQ
 
-## DESCRIPTION: ##
+## Description: ##
 
 WARNING THIS IS ALPHA QUALITY AT THE MOMENT
 
@@ -54,7 +54,7 @@ Want to help out? Ask! Much work to be done here
       }
     end
 
-## LICENSE: ##
+## License: ##
 
 (The MIT License)
 
