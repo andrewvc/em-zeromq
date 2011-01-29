@@ -12,6 +12,12 @@ It needs work for sure, for instance, you cannot remove a socket yet
 
 # Using: #
 
+You must use either rubinius, jruby, or 1.9.x rubies. 1.8.7 unfixable issues.
+
+If you use 1.9.x, be sure to install the ffi gem first.
+
+For all rubies install ffi-rzmq and eventmachine as well.
+
 This only works with ZeroMQ 2.1.x which is still unreleased
 Build+Install ZeroMQ 2.1 from HEAD ( https://github.com/zeromq/zeromq2 ) 
 

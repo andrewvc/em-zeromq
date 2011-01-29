@@ -7,6 +7,9 @@ end
 
 task :default => 'test:run'
 task 'gem:release' => 'test:run'
+  
+depend_on 'ffi-rzmq', '0.7.0'
+depend_on 'eventmachine'
 
 Bones {
   name  'em-zeromq'
