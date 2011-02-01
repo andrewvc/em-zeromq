@@ -32,6 +32,17 @@ module EventMachine
         end
       end
       
+      def deregister_writable
+        self.notify_writable = false
+      end
+      
+      def register_writable
+        if (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
+          notify_writable
+        end
+        self.notify_writable = true
+      end
+      
       def notify_writable
         @handler.on_writable(@socket)
       end
