@@ -17,11 +17,19 @@ module EventMachine
         messages = []
         
         #complete_messages = (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLIN) == ZMQ::POLLIN
-        while  (msg = ZMQ::Message.new) && (@socket.recv(msg, ZMQ::NOBLOCK)) && msg.copy_out_string
+        loop do
+          msg = ZMQ::Message.new
+          break unless @socket.recv(msg, ZMQ::NOBLOCK)
+          
           messages << msg
+           
+          if @socket.more_parts?
+            next
+          else
+            @handler.on_readable(@socket, messages)
+            messages = []
+          end
         end
-         
-        @handler.on_readable(@socket, messages)
       end
       
       def notify_writable
