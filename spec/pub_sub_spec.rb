@@ -22,6 +22,7 @@ describe EventMachine::ZeroMQ do
   def make_sub(addr, b_or_c, handler=EMTestSubHandler.new)
     conn = EM::ZeroMQ.create SPEC_CTX, ZMQ::SUB, b_or_c, addr, handler
     conn.socket.setsockopt(ZMQ::SUBSCRIBE,'')
+    conn.register_readable
     conn
   end
   
