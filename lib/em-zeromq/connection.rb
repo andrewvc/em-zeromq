@@ -14,24 +14,36 @@ module EventMachine
 
       def notify_readable
         return unless read_capable?
-        messages = []
-        
-        #complete_messages = (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLIN) == ZMQ::POLLIN
+        #return unless (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
+         
+        msg_parts = []
+
         loop do
-          msg = ZMQ::Message.new
-          break unless @socket.recv(msg, ZMQ::NOBLOCK)
-          
-          messages << msg
-           
-          if @socket.more_parts?
-            next
+          msg = get_message
+          if msg
+            msg_parts << msg
+            while @socket.more_parts?
+              msg = get_message
+              if msg
+                msg_parts << msg
+              else
+                raise "Multi-part message missing a message!"
+              end
+            end
+            
+            @handler.on_readable(@socket, msg_parts)
           else
-            @handler.on_readable(@socket, messages)
-            messages = []
+            break
           end
         end
       end
       
+      def get_message
+        msg       = ZMQ::Message.new
+        msg_recvd = @socket.recv(msg, ZMQ::NOBLOCK)
+        msg_recvd ? msg : nil
+      end
+
       def deregister_writable
         self.notify_writable = false
       end
