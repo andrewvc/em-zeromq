@@ -1,4 +1,3 @@
-
 module EventMachine
   module ZeroMQ
     class Connection < EventMachine::Connection
@@ -13,13 +12,15 @@ module EventMachine
       end
 
       def notify_readable
-        return unless read_capable?
-        #return unless (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
+        # Not sure if this is actually necessary. I suppose it prevents us
+        # from having to to instantiate a ZMQ::Message unnecessarily.
+        # I'm leaving this is because its in the docs, but it could probably
+        # be taken out.
+        return unless (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLIN) == ZMQ::POLLIN
          
-        msg_parts = []
-
         loop do
-          msg = get_message
+          msg_parts = []
+          msg       = get_message
           if msg
             msg_parts << msg
             while @socket.more_parts?
@@ -44,29 +45,40 @@ module EventMachine
         msg_recvd ? msg : nil
       end
 
+      def notify_writable
+        if (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
+          @handler.on_writable(@socket)
+        end
+      end
+ 
+      # Stop triggering on_writable when socket is writable
       def deregister_writable
         self.notify_writable = false
       end
-      
+       
+      # Make this socket available for reads
+      def register_readable
+        # Since ZMQ is event triggered I think this is necessary
+        if (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLIN) == ZMQ::POLLIN
+          notify_readable
+        end
+        self.notify_readable = true
+      end
+     
+      # Trigger on_readable when socket is readable
       def register_writable
+        # Since ZMQ is event triggered I think this is necessary
         if (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
           notify_writable
         end
         self.notify_writable = true
       end
       
-      def notify_writable
-        @handler.on_writable(@socket)
-      end
-      
-      private
-      
-      def read_capable?
-        @read_capable  ||= EM::ZeroMQ::READABLE_TYPES.include? @socket_type
-      end
-
-      def write_capable?
-        @write_capable ||= EM::ZeroMQ::WRITABLE_TYPES.include? @socket_type
+      # Detaches the socket from the EM loop,
+      # then closes the socket
+      def detach_and_close
+        detach
+        @socket.close
       end
     end
   end

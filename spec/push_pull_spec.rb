@@ -20,11 +20,13 @@ describe EventMachine::ZeroMQ do
   end
 
   def make_pull(addr, b_or_c, handler=EMTestPullHandler.new)
-    EM::ZeroMQ.create SPEC_CTX, ZMQ::PULL, b_or_c, addr, handler
+    conn = EM::ZeroMQ.create SPEC_CTX, ZMQ::PULL, b_or_c, addr, handler
+    conn.register_readable
+    conn
   end
   
   def make_push(addr, b_or_c, handler=EMTestPushHandler.new)
-    EM::ZeroMQ.create SPEC_CTX, ZMQ::PUSH, b_or_c, addr, handler
+    conn = EM::ZeroMQ.create SPEC_CTX, ZMQ::PUSH, b_or_c, addr, handler
   end
 
   it "Should instantiate a connection given valid opts" do
@@ -57,15 +59,9 @@ describe EventMachine::ZeroMQ do
       @results[:specs_ran].should be_true
     end
     
-    it "should receive one message" do
-      @results[:pull_hndlr].received.length.should == 1
-    end
-    
-    it "should receive the message as a ZMQ::Message" do
-      @results[:pull_hndlr].received.first.should be_a(ZMQ::Message)
-    end
-    
     it "should receive the message intact" do
+      @results[:pull_hndlr].received.should_not be_empty
+      @results[:pull_hndlr].received.first.should be_a(ZMQ::Message)
       @results[:pull_hndlr].received.first.copy_out_string.should == @test_message
     end
   end
