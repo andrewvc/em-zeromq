@@ -11,12 +11,20 @@ module EventMachine
         @address     = address
       end
 
+      def readable?
+        (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLIN) == ZMQ::POLLIN
+      end
+
+      def writable?
+        (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
+      end
+
       def notify_readable
         # Not sure if this is actually necessary. I suppose it prevents us
         # from having to to instantiate a ZMQ::Message unnecessarily.
         # I'm leaving this is because its in the docs, but it could probably
         # be taken out.
-        return unless (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLIN) == ZMQ::POLLIN
+        return unless readable?
          
         loop do
           msg_parts = []
@@ -46,7 +54,7 @@ module EventMachine
       end
 
       def notify_writable
-        if (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
+        if writable?
           @handler.on_writable(@socket)
         end
       end
