@@ -67,7 +67,7 @@ module EventMachine
       # Make this socket available for reads
       def register_readable
         # Since ZMQ is event triggered I think this is necessary
-        if (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLIN) == ZMQ::POLLIN
+        if readable?
           notify_readable
         end
         self.notify_readable = true
@@ -76,8 +76,8 @@ module EventMachine
       # Trigger on_readable when socket is readable
       def register_writable
         # Since ZMQ is event triggered I think this is necessary
-        if (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
-          notify_writable
+        if writable?
+          @handler.on_writable(@socket)
         end
         self.notify_writable = true
       end
