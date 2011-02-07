@@ -12,16 +12,38 @@ class EMTestPullHandler
   end
 end
 class EMTestPushHandler
+  attr_accessor :connection
+  attr_reader   :queue
+  
+  def initialize
+    @queue = []
+  end
+   
   def on_writable(socket)
+    @queue.each do |item|
+      socket.send_string item, ZMQ::NOBLOCK
+    end
+    connection.deregister_writable
   end
 end
+
 EM.run do
   ZCTX  = ZMQ::Context.new 1
-  push = EM::ZeroMQ.create ZCTX, ZMQ::PUSH, :bind, 'tcp://127.0.0.1:2091', EMTestPushHandler.new
+  send_queue = []
+
+
+  push_handler = EMTestPushHandler.new
+  push = EM::ZeroMQ.create ZCTX, ZMQ::PUSH, :bind, 'tcp://127.0.0.1:2091', push_handler
+  push_handler.connection = push
+  
+  
   pull = EM::ZeroMQ.create ZCTX, ZMQ::PULL, :connect, 'tcp://127.0.0.1:2091', EMTestPullHandler.new
+  pull.register_readable
       
-  EM::PeriodicTimer.new(1) {
-    push.socket.send_string "Hello World! #{Time.now}", ZMQ::NOBLOCK
-  }
+  EM::PeriodicTimer.new(1) do
+    puts '.'
+    push_handler.queue << "Test message #{Time.now}"
+    push.register_writable
+  end
 end
 
