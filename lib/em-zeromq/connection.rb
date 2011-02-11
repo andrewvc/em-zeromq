@@ -72,6 +72,7 @@ module EventMachine
         if readable?
           notify_readable
         end
+        # Subscribe to EM read notifications
         self.notify_readable = true
       end
      
@@ -81,6 +82,7 @@ module EventMachine
         if writable?
           @handler.on_writable(@socket)
         end
+        # Subscribe to EM write notifications
         self.notify_writable = true
       end
       
