@@ -16,7 +16,9 @@ module EventMachine
       end
 
       def writable?
-        (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
+        return true
+        # ZMQ::EVENTS has issues in ZMQ HEAD, we'll ignore this till they're fixed
+        # (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
       end
 
       def notify_readable
