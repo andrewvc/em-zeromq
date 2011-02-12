@@ -11,6 +11,11 @@ module EventMachine
         @address     = address
       end
 
+      # cleanup when ending loop
+      def unbind
+        detach_and_close
+      end
+      
       def readable?
         (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLIN) == ZMQ::POLLIN
       end
