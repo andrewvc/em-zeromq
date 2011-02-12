@@ -58,9 +58,11 @@ describe EventMachine::ZeroMQ do
         xreq_conn  = make_xreq rand_addr,         :connect,    xreq_hndlr
         xrep_conn  = make_xrep xreq_conn.address, :bind, xrep_hndlr
         
-        xreq_conn.send_msg('', test_message)
          
-        EM::Timer.new(0.1) { results[:specs_ran] = true }
+        EM::Timer.new(0.1) do
+          xreq_conn.send_msg('', test_message)
+          results[:specs_ran] = true
+        end
       end
       
       @results = results
