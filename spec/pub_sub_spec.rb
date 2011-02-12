@@ -10,30 +10,15 @@ describe EventMachine::ZeroMQ do
       @received += messages
     end
   end
-  class EMTestPubHandler
-    def initialize(&block)
-      @on_writable_callback = block
-    end
-    def on_writable(socket)
-      @on_writable_callback.call(socket) if @on_writable_callback
-    end
-  end
-
-  def make_sub(addr, b_or_c, handler=EMTestSubHandler.new)
-    conn = EM::ZeroMQ.create SPEC_CTX, ZMQ::SUB, b_or_c, addr, handler
-    conn.socket.setsockopt(ZMQ::SUBSCRIBE,'')
-    conn.register_readable
-    conn
-  end
   
-  def make_pub(addr, b_or_c, handler=EMTestPubHandler.new)
-    EM::ZeroMQ.create SPEC_CTX, ZMQ::PUB, b_or_c, addr, handler
+  before(:all) do
+    @context = EM::ZeroMQ::Reactor.new(1)
   end
 
   it "Should instantiate a connection given valid opts" do
     sub_conn = nil
-    run_reactor(2) do
-      sub_conn = make_sub(rand_addr, :bind, EMTestSubHandler.new)
+    run_reactor(1) do
+      sub_conn = @context.bind(ZMQ::PUB, rand_addr, EMTestSubHandler.new)
     end
     sub_conn.should be_a(EventMachine::ZeroMQ::Connection)
   end
@@ -45,8 +30,10 @@ describe EventMachine::ZeroMQ do
       
       run_reactor(0.5) do
         results[:sub_hndlr] = pull_hndlr = EMTestSubHandler.new
-        sub_conn  = make_sub rand_addr, :bind, pull_hndlr
-        pub_conn  = make_pub sub_conn.address, :connect
+        sub_conn  = @context.bind(ZMQ::SUB, rand_addr, pull_hndlr)
+        sub_conn.subscribe('')
+        
+        pub_conn  = @context.connect(ZMQ::PUB, sub_conn.address, EMTestSubHandler.new)
         
         pub_conn.socket.send_string test_message, ZMQ::NOBLOCK
         
@@ -55,7 +42,7 @@ describe EventMachine::ZeroMQ do
       
       @results = results
     end
-
+  
     it "should run completely" do
       @results[:specs_ran].should be_true
     end

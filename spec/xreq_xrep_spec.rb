@@ -29,14 +29,12 @@ describe EventMachine::ZeroMQ do
   end
 
   def make_xreq(addr, b_or_c, handler=EMTestXREQHandler.new)
-    conn = EM::ZeroMQ.create SPEC_CTX, ZMQ::XREQ, b_or_c, addr, handler
-    conn.register_readable
+    conn =SPEC_CTX.send(:create, ZMQ::XREQ, b_or_c, addr, handler)
     conn
   end
   
   def make_xrep(addr, b_or_c, handler=EMTestXREPHandler.new)
-    conn = EM::ZeroMQ.create SPEC_CTX, ZMQ::XREP, b_or_c, addr, handler
-    conn.register_readable
+    conn = SPEC_CTX.send(:create, ZMQ::XREP, b_or_c, addr, handler)
     conn
   end
 
@@ -53,14 +51,14 @@ describe EventMachine::ZeroMQ do
       results = {}
       @test_message = test_message = "TMsg#{rand(999)}"
       
-      run_reactor(1.5) do
+      run_reactor(0.2) do
         results[:xrep_hndlr] = xrep_hndlr = EMTestXREPHandler.new
         results[:xreq_hndlr] = xreq_hndlr = EMTestXREQHandler.new
+        
         xreq_conn  = make_xreq rand_addr,         :connect,    xreq_hndlr
         xrep_conn  = make_xrep xreq_conn.address, :bind, xrep_hndlr
-         
-        xreq_conn.socket.send_string '', ZMQ::SNDMORE #delim
-        xreq_conn.socket.send_string test_message
+        
+        xreq_conn.send_msg('', test_message)
          
         EM::Timer.new(0.1) { results[:specs_ran] = true }
       end

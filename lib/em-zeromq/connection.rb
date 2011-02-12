@@ -10,12 +10,62 @@ module EventMachine
         @handler     = handler
         @address     = address
       end
-
+      
+      def self.map_sockopt(opt, name)
+        define_method(name){ @socket.getsockopt(opt) }
+        define_method("#{name}="){|val| @socket.setsockopt(opt, val) }
+      end
+      
+      map_sockopt(ZMQ::HWM, :hwm)
+      map_sockopt(ZMQ::SWAP, :swap)
+      map_sockopt(ZMQ::IDENTITY, :identity)
+      map_sockopt(ZMQ::AFFINITY, :affinity)
+      map_sockopt(ZMQ::SNDBUF, :sndbuf)
+      map_sockopt(ZMQ::RCVBUF, :rcvbuf)
+      
+      # pgm
+      map_sockopt(ZMQ::RATE, :rate)
+      map_sockopt(ZMQ::RECOVERY_IVL, :recovery_ivl)
+      map_sockopt(ZMQ::MCAST_LOOP, :mcast_loop)
+      
+      # User method      
+      def subscribe(what = '')
+        raise "only valid on sub socket type (was #{@socket.name})" unless @socket.name == 'SUB'
+        @socket.setsockopt(ZMQ::SUBSCRIBE, what)
+      end
+      
+      def unsubscribe(what)
+        raise "only valid on sub socket type (was #{@socket.name})" unless @socket.name == 'SUB'
+        @socket.setsockopt(ZMQ::UNSUBSCRIBE, what)
+      end
+      
+      def send_string(*args)
+        @socket.send_string(*args)
+      end
+      
+      def send_msg(*parts)
+        parts = Array(parts[0]) if parts.size == 0
+        
+        # multipart
+        parts[0...-1].each do |msg|
+          @socket.send_string(msg, ZMQ::NOBLOCK | ZMQ::SNDMORE)
+        end
+        
+        @socket.send_string(parts[-1], ZMQ::NOBLOCK)
+      end
+      
+      
+      def setsockopt(opt, value)
+        @socket.setsockopt(opt, value)
+      end
+      
       # cleanup when ending loop
       def unbind
         detach_and_close
       end
       
+    private
+      # internal methods
       def readable?
         (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLIN) == ZMQ::POLLIN
       end
@@ -47,10 +97,18 @@ module EventMachine
               end
             end
             
-            @handler.on_readable(@socket, msg_parts)
+            @handler.on_readable(self, msg_parts)
           else
             break
           end
+        end
+      end
+      
+      def notify_writable
+        return unless writable?
+        
+        if @handler.respond_to?(:on_writable)
+          @handler.on_writable(self)
         end
       end
       
@@ -58,37 +116,6 @@ module EventMachine
         msg       = ZMQ::Message.new
         msg_recvd = @socket.recv(msg, ZMQ::NOBLOCK)
         msg_recvd ? msg : nil
-      end
-
-      def notify_writable
-        if writable?
-          @handler.on_writable(@socket)
-        end
-      end
- 
-      # Stop triggering on_writable when socket is writable
-      def deregister_writable
-        self.notify_writable = false
-      end
-       
-      # Make this socket available for reads
-      def register_readable
-        # Since ZMQ is event triggered I think this is necessary
-        if readable?
-          notify_readable
-        end
-        # Subscribe to EM read notifications
-        self.notify_readable = true
-      end
-     
-      # Trigger on_readable when socket is readable
-      def register_writable
-        # Since ZMQ is event triggered I think this is necessary
-        if writable?
-          @handler.on_writable(@socket)
-        end
-        # Subscribe to EM write notifications
-        self.notify_writable = true
       end
       
       # Detaches the socket from the EM loop,
