@@ -1,3 +1,4 @@
+require 'rspec'
 require 'set'
 Thread.abort_on_exception = true
 
