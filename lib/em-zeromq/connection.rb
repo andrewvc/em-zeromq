@@ -28,7 +28,15 @@ module EventMachine
       map_sockopt(ZMQ::RECOVERY_IVL, :recovery_ivl)
       map_sockopt(ZMQ::MCAST_LOOP, :mcast_loop)
       
-      # User method      
+      # User method
+      def bind(address)
+        @socket.bind(address)
+      end
+      
+      def connect(address)
+        @socket.connect(address)
+      end
+      
       def subscribe(what = '')
         raise "only valid on sub socket type (was #{@socket.name})" unless @socket.name == 'SUB'
         @socket.setsockopt(ZMQ::SUBSCRIBE, what)
