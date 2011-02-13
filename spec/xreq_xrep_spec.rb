@@ -21,27 +21,17 @@ describe EventMachine::ZeroMQ do
     end
     def on_readable(socket, messages)
       ident, delim, message = messages.map(&:copy_out_string)
+      ident.should == "req1"
       @received += [ident, delim, message].map {|s| ZMQ::Message.new(s)}
-      socket.send_string ident, ZMQ::SNDMORE
-      socket.send_string delim, ZMQ::SNDMORE
-      socket.send_string message
+      
+      socket.send_msg(ident, delim, "re:#{message}")
     end
-  end
-
-  def make_xreq(addr, b_or_c, handler=EMTestXREQHandler.new)
-    conn =SPEC_CTX.send(:create, ZMQ::XREQ, b_or_c, addr, handler)
-    conn
-  end
-  
-  def make_xrep(addr, b_or_c, handler=EMTestXREPHandler.new)
-    conn = SPEC_CTX.send(:create, ZMQ::XREP, b_or_c, addr, handler)
-    conn
   end
 
   it "Should instantiate a connection given valid opts" do
     xreq_conn = nil
     run_reactor(1) do
-      xreq_conn = make_xreq(rand_addr, :bind, EMTestXREQHandler.new)
+      xreq_conn = SPEC_CTX.bind(ZMQ::XREQ, rand_addr, EMTestXREQHandler.new)
     end
     xreq_conn.should be_a(EventMachine::ZeroMQ::Connection)
   end
@@ -49,18 +39,17 @@ describe EventMachine::ZeroMQ do
   describe "sending/receiving a single message via Xreq/Xrep" do
     before(:all) do
       results = {}
-      @test_message = test_message = "TMsg#{rand(999)}"
+      @test_message = test_message = "M#{rand(999)}"
       
-      run_reactor(0.2) do
+      run_reactor(0.5) do
         results[:xrep_hndlr] = xrep_hndlr = EMTestXREPHandler.new
         results[:xreq_hndlr] = xreq_hndlr = EMTestXREQHandler.new
+        xreq_conn = SPEC_CTX.connect(ZMQ::XREQ, rand_addr, xreq_hndlr, :identity => "req1")
+        xreq_conn.send_msg('', test_message)
         
-        xreq_conn  = make_xreq rand_addr,         :connect,    xreq_hndlr
-        xrep_conn  = make_xrep xreq_conn.address, :bind, xrep_hndlr
-        
+        xrep_conn = SPEC_CTX.bind(ZMQ::XREP, xreq_conn.address, xrep_hndlr, :identity => "rep1")
          
         EM::Timer.new(0.1) do
-          xreq_conn.send_msg('', test_message)
           results[:specs_ran] = true
         end
       end
@@ -81,7 +70,7 @@ describe EventMachine::ZeroMQ do
     it "the xreq should be echoed its original message" do
       @results[:xreq_hndlr].received.should_not be_empty
       @results[:xreq_hndlr].received.last.should be_a(ZMQ::Message)
-      @results[:xreq_hndlr].received.last.copy_out_string.should == @test_message
+      @results[:xreq_hndlr].received.last.copy_out_string.should == "re:#{@test_message}"
     end
   end
 end
