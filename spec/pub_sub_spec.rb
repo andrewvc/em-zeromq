@@ -10,15 +10,11 @@ describe EventMachine::ZeroMQ do
       @received += messages
     end
   end
-  
-  before(:all) do
-    @context = EM::ZeroMQ::Reactor.new(1)
-  end
 
   it "Should instantiate a connection given valid opts" do
     sub_conn = nil
     run_reactor(1) do
-      sub_conn = @context.bind(ZMQ::PUB, rand_addr, EMTestSubHandler.new)
+      sub_conn = SPEC_CTX.bind(ZMQ::PUB, rand_addr, EMTestSubHandler.new)
     end
     sub_conn.should be_a(EventMachine::ZeroMQ::Connection)
   end
@@ -30,10 +26,10 @@ describe EventMachine::ZeroMQ do
       
       run_reactor(0.5) do
         results[:sub_hndlr] = pull_hndlr = EMTestSubHandler.new
-        sub_conn  = @context.bind(ZMQ::SUB, rand_addr, pull_hndlr)
+        sub_conn  = SPEC_CTX.bind(ZMQ::SUB, rand_addr, pull_hndlr)
         sub_conn.subscribe('')
         
-        pub_conn  = @context.connect(ZMQ::PUB, sub_conn.address, EMTestSubHandler.new)
+        pub_conn  = SPEC_CTX.connect(ZMQ::PUB, sub_conn.address, EMTestSubHandler.new)
         
         pub_conn.socket.send_string test_message, ZMQ::NOBLOCK
         
