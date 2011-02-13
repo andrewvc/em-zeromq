@@ -39,19 +39,35 @@ module EventMachine
         @socket.setsockopt(ZMQ::UNSUBSCRIBE, what)
       end
       
-      def send_string(*args)
-        @socket.send_string(*args)
-      end
-      
+      # send a non blocking message
+      # parts:  if only one argument is given a signle part message is sent
+      #         if more than one arguments is given a multipart message is sent
+      #
+      # return: true is message was queued, false otherwise
+      #
       def send_msg(*parts)
         parts = Array(parts[0]) if parts.size == 0
+        sent = true
         
         # multipart
         parts[0...-1].each do |msg|
-          @socket.send_string(msg, ZMQ::NOBLOCK | ZMQ::SNDMORE)
+          sent = @socket.send_string(msg, ZMQ::NOBLOCK | ZMQ::SNDMORE)
+          if sent == false
+            break
+          end
         end
         
-        @socket.send_string(parts[-1], ZMQ::NOBLOCK)
+        if sent
+          # all the previous parts were queued, send
+          # the last one
+          @socket.send_string(parts[-1], ZMQ::NOBLOCK)
+          true
+        else
+          # error while sending the previous parts
+          # register the socket for writability
+          self.notify_writable = true
+          false
+        end
       end
       
       
@@ -106,6 +122,11 @@ module EventMachine
       
       def notify_writable
         return unless writable?
+        
+        # one a writable event is successfullt received the socket
+        # should be accepting messages again so stop triggering
+        # write events
+        self.notify_writable = false
         
         if @handler.respond_to?(:on_writable)
           @handler.on_writable(self)
