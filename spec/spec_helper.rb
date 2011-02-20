@@ -37,7 +37,7 @@ def rand_addr(scheme='tcp')
   addr
 end
 
-SPEC_CTX = EM::ZeroMQ::Reactor.new(1)
+SPEC_CTX = EM::ZeroMQ::Context.new(1)
 def spec_ctx
   SPEC_CTX
 end

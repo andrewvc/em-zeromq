@@ -15,15 +15,15 @@ class EMTestPullHandler
 end
 
 EM.run do
-  reactor = EM::ZeroMQ::Reactor.new(1)
+  ctx = EM::ZeroMQ::Context.new(1)
   
   # setup two push sockets
-  push_socket1 = reactor.bind( ZMQ::PUSH, 'tcp://127.0.0.1:2091')
-  push_socket2 = reactor.bind( ZMQ::PUSH, 'ipc:///tmp/a')
-  push_socket3 = reactor.bind( ZMQ::PUSH, 'inproc://simple_test')
+  push_socket1 = ctx.bind( ZMQ::PUSH, 'tcp://127.0.0.1:2091')
+  push_socket2 = ctx.bind( ZMQ::PUSH, 'ipc:///tmp/a')
+  push_socket3 = ctx.bind( ZMQ::PUSH, 'inproc://simple_test')
   
   # setup one pull sockets listening to both push sockets
-  pull_socket = reactor.connect( ZMQ::PULL, 'tcp://127.0.0.1:2091', EMTestPullHandler.new)
+  pull_socket = ctx.connect( ZMQ::PULL, 'tcp://127.0.0.1:2091', EMTestPullHandler.new)
   pull_socket.connect('ipc:///tmp/a')
   pull_socket.connect('inproc://simple_test')
   

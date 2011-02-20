@@ -1,12 +1,12 @@
 #
 # different ways to create a socket:
-# reactor.bind(:xreq, 'tcp://127.0.0.1:6666')
-# reactor.bind('xreq', 'tcp://127.0.0.1:6666')
-# reactor.bind(ZMQ::XREQ, 'tcp://127.0.0.1:6666')
+# ctx.bind(:xreq, 'tcp://127.0.0.1:6666')
+# ctx.bind('xreq', 'tcp://127.0.0.1:6666')
+# ctx.bind(ZMQ::XREQ, 'tcp://127.0.0.1:6666')
 #
 module EventMachine
   module ZeroMQ
-    class Reactor
+    class Context
       READABLES = [ ZMQ::SUB, ZMQ::PULL, ZMQ::XREQ, ZMQ::XREP, ZMQ::REP, ZMQ::REQ ]
       WRITABLES = [ ZMQ::PUB, ZMQ::PUSH, ZMQ::XREQ, ZMQ::XREP, ZMQ::REP, ZMQ::REQ ]
       
