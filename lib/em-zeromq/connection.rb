@@ -72,6 +72,11 @@ module EventMachine
         if readable?
           notify_readable
         end
+        
+        # HACK: Under heavy load sockets can miss a trigger
+        # We should find and fix the root cause
+        EM::PeriodicTimer.new(0.5) { notify_readable }
+         
         # Subscribe to EM read notifications
         self.notify_readable = true
       end
