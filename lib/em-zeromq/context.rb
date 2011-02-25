@@ -19,11 +19,15 @@ module EventMachine
       end
 
       def bind(socket_type, address, handler = nil, opts = {})
-        create(socket_type, :bind, address, handler, opts)
+        build(socket_type, :bind, address, handler, opts)
       end
 
       def connect(socket_type, address, handler = nil, opts = {})
-        create(socket_type, :connect, address, handler, opts)
+        build(socket_type, :connect, address, handler, opts)
+      end
+
+      def create(socket_type, bind_or_connect, address, handler, opts = {})
+        build(socket_type, bind_or_connect, address, handler, opts)
       end
       
     private
@@ -35,7 +39,7 @@ module EventMachine
         end
       end
       
-      def create(socket_type, bind_or_connect, address, handler, opts = {})
+      def build(socket_type, bind_or_connect, address, handler, opts = {})
         socket_type = find_type(socket_type)
         socket = @context.socket(socket_type)
         
