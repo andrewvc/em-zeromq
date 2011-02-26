@@ -26,15 +26,6 @@ module EventMachine
         create(socket_type, :connect, address, handler, opts)
       end
       
-    private
-      def find_type(type)
-        if type.is_a?(Symbol) or type.is_a?(String)
-          ZMQ.const_get(type.to_s.upcase)
-        else
-          type
-        end
-      end
-      
       def create(socket_type, bind_or_connect, address, handler, opts = {})
         socket_type = find_type(socket_type)
         socket = @context.socket(socket_type)
@@ -66,6 +57,16 @@ module EventMachine
 
         conn
       end
+      
+    private
+      def find_type(type)
+        if type.is_a?(Symbol) or type.is_a?(String)
+          ZMQ.const_get(type.to_s.upcase)
+        else
+          type
+        end
+      end
+      
     end
 
   end
