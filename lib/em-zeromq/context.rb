@@ -48,11 +48,11 @@ module EventMachine
         conn = EM.watch(socket.getsockopt(ZMQ::FD), EventMachine::ZeroMQ::Connection, socket, socket_type, address, handler)
 
         if READABLES.include?(socket_type)
-          conn.notify_readable = true
+          conn.register_readable
         end
         
         if WRITABLES.include?(socket_type)
-          conn.notify_writable = true
+          conn.register_writable
         end
 
         conn
