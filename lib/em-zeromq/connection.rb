@@ -78,7 +78,6 @@ module EventMachine
         end
       end
       
-      
       def setsockopt(opt, value)
         @socket.setsockopt(opt, value)
       end
@@ -88,6 +87,22 @@ module EventMachine
         detach_and_close
       end
       
+      # Make this socket available for reads
+      def register_readable
+        # Since ZMQ is event triggered I think this is necessary
+        if readable?
+          notify_readable
+        end
+        # Subscribe to EM read notifications
+        self.notify_readable = true
+      end
+
+      # Trigger on_readable when socket is readable
+      def register_writable
+        # Subscribe to EM write notifications
+        self.notify_writable = true
+      end
+
     private
       # internal methods
       def readable?
@@ -131,7 +146,7 @@ module EventMachine
       def notify_writable
         return unless writable?
         
-        # one a writable event is successfullt received the socket
+        # one a writable event is successfully received the socket
         # should be accepting messages again so stop triggering
         # write events
         self.notify_writable = false

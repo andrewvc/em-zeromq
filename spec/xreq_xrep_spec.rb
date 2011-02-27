@@ -10,6 +10,7 @@ describe EventMachine::ZeroMQ do
       @received += messages
     end
   end
+
   class EMTestXREPHandler
     attr_reader :received
     def initialize(&block)
