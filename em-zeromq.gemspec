@@ -3,7 +3,6 @@ $:.push File.expand_path("../lib", __FILE__)
 require "em-zeromq/version"
 
 Gem::Specification.new do |s|
-puts Gem::Platform::RUBY.to_s
   s.name        = "em-zeromq"
   s.version     = EmZeromq::VERSION
   s.platform    = Gem::Platform::RUBY
@@ -18,6 +17,7 @@ puts Gem::Platform::RUBY.to_s
 
   s.add_dependency 'eventmachine', '> 0'
   s.add_dependency 'ffi-rzmq', '>= 0.7.0'
+  s.add_dependency 'ffi' if RUBY_PLATFORM != "java"
   s.add_development_dependency 'rspec', '>= 2.5.0'
 
   s.files         = `git ls-files`.split("\n")
