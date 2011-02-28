@@ -15,9 +15,10 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "em-zeromq"
 
-  s.add_dependency 'eventmachine', '> 0'
-  s.add_dependency 'ffi-rzmq', '>= 0.7.0'
-  s.add_dependency 'ffi' if RUBY_PLATFORM != "java"
+  s.add_dependency 'eventmachine', '>= 0.12.11'
+  s.add_dependency 'ffi-rzmq', '>= 0.7.2'
+  s.add_dependency 'ffi' if RUBY_PLATFORM != "java" && 
+                            defined?(RUBY_ENGINE) && RUBY_ENGINE != 'rbx'
   s.add_development_dependency 'rspec', '>= 2.5.0'
 
   s.files         = `git ls-files`.split("\n")
