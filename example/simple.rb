@@ -29,7 +29,6 @@ EM.run do
   n = 0
   
   # push_socket.hwm = 40
-  
   # puts push_socket.hwm
   # puts pull_socket.hwm
   
@@ -40,7 +39,3 @@ EM.run do
     push_socket3.send_msg("p#{n += 1}_")
   end
 end
-
-# expected result is :
-# .__.__.__.__.__.__.__.__.__.__.__.__.__.__.__.__.__.__.__
-#

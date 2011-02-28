@@ -37,39 +37,31 @@ Want to help out? Ask!
         end
       end
     end
-    class EMTestPushHandler
-      attr_accessor :connection
-      attr_reader   :queue
-      
-      def initialize
-        @queue = []
-      end
-       
-      def on_writable(socket)
-        @queue.each do |item|
-          socket.send_string item, ZMQ::NOBLOCK
-        end
-        connection.deregister_writable
-      end
-    end
 
     EM.run do
-      ZCTX  = ZMQ::Context.new 1
-      send_queue = []
-
-
-      push_handler = EMTestPushHandler.new
-      push = EM::ZeroMQ.create ZCTX, ZMQ::PUSH, :bind, 'tcp://127.0.0.1:2091', push_handler
-      push_handler.connection = push
+      ctx = EM::ZeroMQ::Context.new(1)
       
+      # setup push sockets
+      push_socket1 = ctx.bind( ZMQ::PUSH, 'tcp://127.0.0.1:2091')
+      push_socket2 = ctx.bind( ZMQ::PUSH, 'ipc:///tmp/a')
+      push_socket3 = ctx.bind( ZMQ::PUSH, 'inproc://simple_test')
       
-      pull = EM::ZeroMQ.create ZCTX, ZMQ::PULL, :connect, 'tcp://127.0.0.1:2091', EMTestPullHandler.new
-      pull.register_readable
-          
-      EM::PeriodicTimer.new(1) do
+      # setup one pull sockets listening to both push sockets
+      pull_socket = ctx.connect( ZMQ::PULL, 'tcp://127.0.0.1:2091', EMTestPullHandler.new)
+      pull_socket.connect('ipc:///tmp/a')
+      pull_socket.connect('inproc://simple_test')
+      
+      n = 0
+      
+      # push_socket.hwm = 40
+      # puts push_socket.hwm
+      # puts pull_socket.hwm
+      
+      EM::PeriodicTimer.new(0.1) do
         puts '.'
-        push_handler.queue << "Test message #{Time.now}"
-        push.register_writable
+        push_socket1.send_msg("t#{n += 1}_")
+        push_socket2.send_msg("i#{n += 1}_")
+        push_socket3.send_msg("p#{n += 1}_")
       end
     end
 
