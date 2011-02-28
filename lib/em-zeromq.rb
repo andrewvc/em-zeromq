@@ -8,12 +8,6 @@ module EmZeromq
   PATH = ::File.dirname(LIBPATH) + ::File::SEPARATOR
   # :startdoc:
 
-  # Returns the version string for the library.
-  #
-  def self.version
-    @version ||= VERSION
-  end
-
   # Returns the library path for the module. If any arguments are given,
   # they will be joined to the end of the libray path using
   # <tt>File.join</tt>.
