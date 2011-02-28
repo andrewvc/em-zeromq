@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "em-zeromq"
 
-  s.add_dependency 'eventmachine', '>= 0.12.11'
+  s.add_dependency 'eventmachine', '>= 0.12.10'
   s.add_dependency 'ffi-rzmq', '>= 0.7.2'
   s.add_dependency 'ffi' if RUBY_PLATFORM != "java" && 
                             defined?(RUBY_ENGINE) && RUBY_ENGINE != 'rbx'
