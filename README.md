@@ -2,6 +2,8 @@
 
 Low level event machine support for ZeroMQ
 
+FOR NOW BUILD EVENTMACHINE FROM HEAD OR YOU WILL FIND A PAINFUL BUG
+
 ## Description: ##
 
 This seems to work fine, no memory leaks, and it runs fast.
