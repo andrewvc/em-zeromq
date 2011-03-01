@@ -17,8 +17,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'eventmachine', '>= 0.12.10'
   s.add_dependency 'ffi-rzmq', '>= 0.7.2'
-  s.add_dependency 'ffi' if RUBY_PLATFORM != "java" && 
-                            defined?(RUBY_ENGINE) && RUBY_ENGINE != 'rbx'
+
   s.add_development_dependency 'rspec', '>= 2.5.0'
 
   s.files         = `git ls-files`.split("\n")
@@ -26,4 +25,3 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 end
-
