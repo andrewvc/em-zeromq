@@ -103,18 +103,6 @@ module EventMachine
         self.notify_writable = true
       end
 
-    private
-      # internal methods
-      def readable?
-        (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLIN) == ZMQ::POLLIN
-      end
-
-      def writable?
-        return true
-        # ZMQ::EVENTS has issues in ZMQ HEAD, we'll ignore this till they're fixed
-        # (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
-      end
-
       def notify_readable
         # Not sure if this is actually necessary. I suppose it prevents us
         # from having to to instantiate a ZMQ::Message unnecessarily.
@@ -155,7 +143,18 @@ module EventMachine
           @handler.on_writable(self)
         end
       end
-      
+    private
+      # internal methods
+      def readable?
+        (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLIN) == ZMQ::POLLIN
+      end
+
+      def writable?
+        return true
+        # ZMQ::EVENTS has issues in ZMQ HEAD, we'll ignore this till they're fixed
+        # (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
+      end
+
       def get_message
         msg       = ZMQ::Message.new
         msg_recvd = @socket.recv(msg, ZMQ::NOBLOCK)
