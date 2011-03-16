@@ -1,21 +1,19 @@
 # em-zeromq #
 
-Low level event machine support for ZeroMQ
-
 ## Description: ##
 
-This seems to work fine, no memory leaks, and it runs fast.
-It may not be perfect though, and the API is extremely minimal, just the bare minumum
-to make ZeroMQ work with EventMachine.
+EventMachine support for ZeroMQ
 
-## Using: ##
+## Usage: ##
 
-You must use either rubinius, jruby, or 1.9.x. 1.8.7 does not work with libzmq.
+Tested and functional with Rubinius, jRuby, and 1.9.2.
+
+If using 1.9.2 you must `gem install ffi` before using.
+
+MRI 1.8.7 does not work with libzmq.
 
 This only works with ZeroMQ 2.1.x which is still unreleased
 Build+Install ZeroMQ 2.1 from HEAD ( https://github.com/zeromq/zeromq2 ) 
-
-Run the specs, see specs for examples
 
 Want to help out? Ask!
 
