@@ -143,8 +143,6 @@ module EventMachine
           @handler.on_writable(self)
         end
       end
-    private
-      # internal methods
       def readable?
         (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLIN) == ZMQ::POLLIN
       end
@@ -154,6 +152,10 @@ module EventMachine
         # ZMQ::EVENTS has issues in ZMQ HEAD, we'll ignore this till they're fixed
         # (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
       end
+     
+    private
+    
+      # internal methods
 
       def get_message
         msg       = ZMQ::Message.new
