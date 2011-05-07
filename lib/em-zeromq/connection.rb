@@ -69,7 +69,6 @@ module EventMachine
           # all the previous parts were queued, send
           # the last one
           @socket.send_string(parts[-1], ZMQ::NOBLOCK)
-          true
         else
           # error while sending the previous parts
           # register the socket for writability
