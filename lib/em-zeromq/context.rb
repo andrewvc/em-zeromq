@@ -9,7 +9,7 @@ module EventMachine
     class Context
       READABLES = [ ZMQ::SUB, ZMQ::PULL, ZMQ::XREQ, ZMQ::XREP, ZMQ::REP, ZMQ::REQ ]
       WRITABLES = [ ZMQ::PUB, ZMQ::PUSH, ZMQ::XREQ, ZMQ::XREP, ZMQ::REP, ZMQ::REQ ]
-      
+
       def initialize(threads_or_context)
         if threads_or_context.is_a?(ZMQ::Context)
           @context = threads_or_context
@@ -18,46 +18,37 @@ module EventMachine
         end
       end
 
-      def bind(socket_type, address, handler = nil, opts = {})
-        create(socket_type, :bind, address, handler, opts)
+      def bind(socket, address, handler = nil, opts = {})
+        socket.bind(address)
+        watch(socket, address, handler, opts)
       end
 
-      def connect(socket_type, address, handler = nil, opts = {})
-        create(socket_type, :connect, address, handler, opts)
+      def connect(socket, address, handler = nil, opts = {})
+        socket.connect(address)
+        watch(socket, address, handler, opts)
       end
-      
-      def create(socket_type, bind_or_connect, address, handler, opts = {})
+
+      def socket(socket_type)
         socket_type = find_type(socket_type)
-        socket = @context.socket(socket_type)
-        
-        ident = opts.delete(:identity)
-        if ident
-          socket.setsockopt(ZMQ::IDENTITY, ident)
-        end
-        
-        unless opts.empty?
-          raise "unknown keys: #{opts.keys.join(', ')}"
-        end
+        @context.socket(socket_type)
+      end
 
-        if bind_or_connect == :bind
-          socket.bind(address)
-        else
-          socket.connect(address)
-        end
-
-        conn = EM.watch(socket.getsockopt(ZMQ::FD), EventMachine::ZeroMQ::Connection, socket, socket_type, address, handler)
+      def watch(socket, address, handler, opts = {})
+        socket_type = socket.getsockopt(ZMQ::TYPE)
+        fd = socket.getsockopt(ZMQ::FD)
+        conn = EM.watch(fd, EventMachine::ZeroMQ::Connection, socket, socket_type, address, handler)
 
         if READABLES.include?(socket_type)
           conn.register_readable
         end
-        
+
         if WRITABLES.include?(socket_type)
           conn.register_writable
         end
 
         conn
       end
-      
+
     private
       def find_type(type)
         if type.is_a?(Symbol) or type.is_a?(String)
@@ -66,7 +57,7 @@ module EventMachine
           type
         end
       end
-      
+
     end
 
   end
