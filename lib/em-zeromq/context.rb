@@ -18,6 +18,11 @@ module EventMachine
         end
       end
 
+      def socket(socket_type)
+        socket_type = find_type(socket_type)
+        @context.socket(socket_type)
+      end
+
       def bind(socket_or_type, address, handler = nil, opts = {})
         socket, type = create(socket_or_type, opts)
         socket.bind(address)
