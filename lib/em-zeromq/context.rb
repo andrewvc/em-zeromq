@@ -54,8 +54,8 @@ module EventMachine
 
       def create(socket_or_type, opts = {})
         if socket_or_type.is_a?(ZMQ::Socket)
-          type = socket.getsockopt(ZMQ::TYPE)
           socket = socket_or_type
+          type = socket_or_type.getsockopt(ZMQ::TYPE)
         else
           type = find_type(socket_or_type)
           socket = @context.socket(type)
