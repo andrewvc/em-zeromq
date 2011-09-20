@@ -1,17 +1,19 @@
 require File.join(File.dirname(__FILE__), %w[spec_helper])
 
 describe EventMachine::ZeroMQ do
-  class EMTestROUTERHandler
+  class EMTestRouterHandler
     attr_reader :received
     def initialize
       @received = []
+    end
+    def on_writable(socket)
     end
     def on_readable(socket, messages)
       @received += messages
     end
   end
 
-  class EMTestDEALERHandler
+  class EMTestDealerHandler
     attr_reader :received
     def initialize(&block)
       @received = []
@@ -22,33 +24,34 @@ describe EventMachine::ZeroMQ do
     end
     def on_readable(socket, messages)
       ident, delim, message = messages.map(&:copy_out_string)
-      ident.should == "req1"
+      ident.should == "dealer1"
       @received += [ident, delim, message].map {|s| ZMQ::Message.new(s)}
       
       socket.send_msg(ident, delim, "re:#{message}")
     end
   end
 
-  it "Should instantiate a connection given valid opts" do
+  it "Should instantiate a connection given valid opts for Router/Dealer" do
     router_conn = nil
     run_reactor(1) do
-      router_conn = SPEC_CTX.bind(ZMQ::ROUTER, rand_addr, EMTestROUTERHandler.new)
+      router_conn = SPEC_CTX.bind(ZMQ::ROUTER, rand_addr, EMTestRouterHandler.new)
     end
     router_conn.should be_a(EventMachine::ZeroMQ::Connection)
   end
 
-  describe "sending/receiving a single message via Xreq/Xrep" do
+  describe "sending/receiving a single message via Router/Dealer" do
     before(:all) do
       results = {}
       @test_message = test_message = "M#{rand(999)}"
       
       run_reactor(0.5) do
-        results[:dealer_hndlr] = dealer_hndlr = EMTestDEALERHandler.new
-        results[:router_hndlr] = router_hndlr = EMTestROUTERHandler.new
-        router_conn = SPEC_CTX.connect(ZMQ::ROUTER, rand_addr, router_hndlr, :identity => "req1")
-        router_conn.send_msg('', test_message)
-        
-        dealer_conn = SPEC_CTX.bind(ZMQ::DEALER, router_conn.address, dealer_hndlr, :identity => "rep1")
+        results[:dealer_hndlr] = dealer_hndlr = EMTestDealerHandler.new
+        results[:router_hndlr] = router_hndlr = EMTestRouterHandler.new
+
+        addr = rand_addr
+        dealer_conn = SPEC_CTX.bind(ZMQ::DEALER, addr, dealer_hndlr, :identity => "dealer1")
+        router_conn = SPEC_CTX.connect(ZMQ::ROUTER, addr, router_hndlr, :identity => "router1")
+        router_conn.send_msg('x', test_message)
          
         EM::Timer.new(0.1) do
           results[:specs_ran] = true
