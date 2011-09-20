@@ -1,8 +1,8 @@
 #
 # different ways to create a socket:
-# ctx.bind(:xreq, 'tcp://127.0.0.1:6666')
-# ctx.bind('xreq', 'tcp://127.0.0.1:6666')
-# ctx.bind(ZMQ::XREQ, 'tcp://127.0.0.1:6666')
+# ctx.bind(:router, 'tcp://127.0.0.1:6666')
+# ctx.bind('router', 'tcp://127.0.0.1:6666')
+# ctx.bind(ZMQ::ROUTER, 'tcp://127.0.0.1:6666')
 #
 module EventMachine
   module ZeroMQ
