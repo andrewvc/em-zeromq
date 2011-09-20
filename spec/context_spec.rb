@@ -17,7 +17,9 @@ describe 'Context' do
       s2 = @ctx.bind('router', 'tcp://127.0.0.1:5556')
       s3 = @ctx.bind(ZMQ::ROUTER, 'tcp://127.0.0.1:5557')
     
-      s1.instance_variable_get('@socket').name.should == 'ROUTER'
+      expected_socket_type_name = ZMQ::SocketTypeNameMap[ZMQ::ROUTER]
+
+      s1.instance_variable_get('@socket').name.should == expected_socket_type_name
       EM::stop_event_loop
     end
   end
