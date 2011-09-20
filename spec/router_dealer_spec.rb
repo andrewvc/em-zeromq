@@ -1,7 +1,7 @@
 require File.join(File.dirname(__FILE__), %w[spec_helper])
 
 describe EventMachine::ZeroMQ do
-  class EMTestXREQHandler
+  class EMTestROUTERHandler
     attr_reader :received
     def initialize
       @received = []
@@ -11,7 +11,7 @@ describe EventMachine::ZeroMQ do
     end
   end
 
-  class EMTestXREPHandler
+  class EMTestDEALERHandler
     attr_reader :received
     def initialize(&block)
       @received = []
@@ -30,11 +30,11 @@ describe EventMachine::ZeroMQ do
   end
 
   it "Should instantiate a connection given valid opts" do
-    xreq_conn = nil
+    router_conn = nil
     run_reactor(1) do
-      xreq_conn = SPEC_CTX.bind(ZMQ::XREQ, rand_addr, EMTestXREQHandler.new)
+      router_conn = SPEC_CTX.bind(ZMQ::ROUTER, rand_addr, EMTestROUTERHandler.new)
     end
-    xreq_conn.should be_a(EventMachine::ZeroMQ::Connection)
+    router_conn.should be_a(EventMachine::ZeroMQ::Connection)
   end
 
   describe "sending/receiving a single message via Xreq/Xrep" do
@@ -43,12 +43,12 @@ describe EventMachine::ZeroMQ do
       @test_message = test_message = "M#{rand(999)}"
       
       run_reactor(0.5) do
-        results[:xrep_hndlr] = xrep_hndlr = EMTestXREPHandler.new
-        results[:xreq_hndlr] = xreq_hndlr = EMTestXREQHandler.new
-        xreq_conn = SPEC_CTX.connect(ZMQ::XREQ, rand_addr, xreq_hndlr, :identity => "req1")
-        xreq_conn.send_msg('', test_message)
+        results[:dealer_hndlr] = dealer_hndlr = EMTestDEALERHandler.new
+        results[:router_hndlr] = router_hndlr = EMTestROUTERHandler.new
+        router_conn = SPEC_CTX.connect(ZMQ::ROUTER, rand_addr, router_hndlr, :identity => "req1")
+        router_conn.send_msg('', test_message)
         
-        xrep_conn = SPEC_CTX.bind(ZMQ::XREP, xreq_conn.address, xrep_hndlr, :identity => "rep1")
+        dealer_conn = SPEC_CTX.bind(ZMQ::DEALER, router_conn.address, dealer_hndlr, :identity => "rep1")
          
         EM::Timer.new(0.1) do
           results[:specs_ran] = true
@@ -62,16 +62,16 @@ describe EventMachine::ZeroMQ do
       @results[:specs_ran].should be_true
     end
     
-    it "should receive the message intact on the xrep" do
-      @results[:xrep_hndlr].received.should_not be_empty
-      @results[:xrep_hndlr].received.last.should be_a(ZMQ::Message)
-      @results[:xrep_hndlr].received.last.copy_out_string.should == @test_message
+    it "should receive the message intact on the dealer" do
+      @results[:dealer_hndlr].received.should_not be_empty
+      @results[:dealer_hndlr].received.last.should be_a(ZMQ::Message)
+      @results[:dealer_hndlr].received.last.copy_out_string.should == @test_message
     end
 
-    it "the xreq should be echoed its original message" do
-      @results[:xreq_hndlr].received.should_not be_empty
-      @results[:xreq_hndlr].received.last.should be_a(ZMQ::Message)
-      @results[:xreq_hndlr].received.last.copy_out_string.should == "re:#{@test_message}"
+    it "the router should be echoed its original message" do
+      @results[:router_hndlr].received.should_not be_empty
+      @results[:router_hndlr].received.last.should be_a(ZMQ::Message)
+      @results[:router_hndlr].received.last.copy_out_string.should == "re:#{@test_message}"
     end
   end
 end

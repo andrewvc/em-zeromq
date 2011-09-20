@@ -7,8 +7,8 @@
 module EventMachine
   module ZeroMQ
     class Context
-      READABLES = [ ZMQ::SUB, ZMQ::PULL, ZMQ::XREQ, ZMQ::XREP, ZMQ::REP, ZMQ::REQ ]
-      WRITABLES = [ ZMQ::PUB, ZMQ::PUSH, ZMQ::XREQ, ZMQ::XREP, ZMQ::REP, ZMQ::REQ ]
+      READABLES = [ ZMQ::SUB, ZMQ::PULL, ZMQ::ROUTER, ZMQ::DEALER, ZMQ::REP, ZMQ::REQ ]
+      WRITABLES = [ ZMQ::PUB, ZMQ::PUSH, ZMQ::ROUTER, ZMQ::DEALER, ZMQ::REP, ZMQ::REQ ]
       
       def initialize(threads_or_context)
         if threads_or_context.is_a?(ZMQ::Context)
