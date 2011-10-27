@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.rubyforge_project = "em-zeromq"
 
   s.add_dependency 'eventmachine', '>= 1.0.0.beta.4'
-  s.add_dependency 'ffi-rzmq', '>= 0.8.2'
+  s.add_dependency 'ffi-rzmq', '~> 0.8.2'
 
   s.add_development_dependency 'rspec', '>= 2.5.0'
 
