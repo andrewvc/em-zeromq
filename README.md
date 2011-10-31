@@ -12,9 +12,6 @@ If using 1.9.2 you must `gem install ffi` before using.
 
 MRI 1.8.7 does not work with libzmq.
 
-This only works with ZeroMQ 2.1.x which is still unreleased
-Build+Install ZeroMQ 2.1 from HEAD ( https://github.com/zeromq/zeromq2 ) 
-
 Want to help out? Ask!
 
 ## Example ##
