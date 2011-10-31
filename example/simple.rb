@@ -1,5 +1,5 @@
 require 'rubygems'
-$LOAD_PATH << File.expand_path('../../lib', __FILE__)
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'em-zeromq'
     
 Thread.abort_on_exception = true
@@ -13,6 +13,12 @@ class EMTestPullHandler
   end
 end
 
+trap('INT') do
+  EM::stop()
+end
+
+puts "Started (with zmq #{ZMQ::Util.version.join('.')})."
+
 EM.run do
   ctx = EM::ZeroMQ::Context.new(1)
   
@@ -21,16 +27,15 @@ EM.run do
   push_socket2 = ctx.bind( ZMQ::PUSH, 'ipc:///tmp/a')
   push_socket3 = ctx.bind( ZMQ::PUSH, 'inproc://simple_test')
   
-  # setup one pull sockets listening to both push sockets
+  # setup one pull sockets listening to all push sockets
   pull_socket = ctx.connect( ZMQ::PULL, 'tcp://127.0.0.1:2091', EMTestPullHandler.new)
   pull_socket.connect('ipc:///tmp/a')
   pull_socket.connect('inproc://simple_test')
   
   n = 0
   
-  # push_socket.hwm = 40
-  # puts push_socket.hwm
-  # puts pull_socket.hwm
+  push_socket1.hwm = 40
+  puts "HWM: #{push_socket1.hwm}"
   
   EM::PeriodicTimer.new(0.1) do
     puts '.'
@@ -39,3 +44,5 @@ EM.run do
     push_socket3.send_msg("p#{n += 1}_")
   end
 end
+
+puts "Completed."
