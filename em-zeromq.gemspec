@@ -17,9 +17,10 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'eventmachine', '>= 1.0.0.beta.4'
   s.add_dependency 'ffi', '>= 1.0.0'
-  s.add_dependency 'ffi-rzmq', '~> 0.8.2'
+  s.add_dependency 'ffi-rzmq'
 
   s.add_development_dependency 'rspec', '>= 2.5.0'
+  s.add_development_dependency 'rake'
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
