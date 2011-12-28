@@ -14,6 +14,28 @@ MRI 1.8.7 does not work with libzmq.
 
 Want to help out? Ask!
 
+## Warning !! ##
+
+To ensure your zeromq context won't be reclaimed by the ruby garbage collector you need
+to keep a reference to it in scope, this is what you don't want to do:
+
+```ruby
+EM.run do
+  context = EM::ZeroMQ::Context.new(1)
+  dealer_socket = context.connect(...)
+  dealer_socket.send_msg('', "ping")
+end
+```
+
+If you do this everything will appear to work fine at first but as soon as the garbage collector
+is triggered your context will get destroyed and your application will hang.
+
+The same should be true for references to socket.  
+It should not be a major problem anyway since code like above is only written for examples
+but I just pulled my hair trying to figure out why my test code was not working so now you
+have been warned !
+
+
 ## Example ##
 ```ruby
 require 'rubygems'
