@@ -52,9 +52,9 @@ class EMTestPullHandler
   end
 end
 
+
+ctx = EM::ZeroMQ::Context.new(1)
 EM.run do
-  ctx = EM::ZeroMQ::Context.new(1)
-  
   # setup push sockets
   push_socket1 = ctx.bind( ZMQ::PUSH, 'tcp://127.0.0.1:2091')
   push_socket2 = ctx.bind( ZMQ::PUSH, 'ipc:///tmp/a')
