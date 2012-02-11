@@ -1,5 +1,10 @@
 # em-zeromq #
 
+## Call for a new maintainer ##
+
+We currently need a new, active maintainer for this project as I no longer use it personally and don't have time to keep up with ZMQ upstream.
+If interested shoot me a message on github.
+
 ## Description: ##
 
 EventMachine support for ZeroMQ
