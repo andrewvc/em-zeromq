@@ -45,8 +45,12 @@ module EventMachine
           socket.connect(address)
         end
         
-        fd = socket.getsockopt(ZMQ::FD)
-        conn = EM.watch(fd, EventMachine::ZeroMQ::Connection, socket, socket_type, address, handler)
+        fd = []
+        if socket.getsockopt(ZMQ::FD, fd) < 0
+          raise "Unable to get socket FD: #{ZMQ::Util.error_string}"
+        end
+        
+        conn = EM.watch(fd[0], EventMachine::ZeroMQ::Connection, socket, socket_type, address, handler)
 
         if READABLES.include?(socket_type)
           conn.register_readable

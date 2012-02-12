@@ -12,7 +12,7 @@ module EventMachine
       end
       
       def self.map_sockopt(opt, name)
-        define_method(name){ @socket.getsockopt(opt) }
+        define_method(name){ getsockopt(opt) }
         define_method("#{name}="){|val| @socket.setsockopt(opt, val) }
       end
       
@@ -68,13 +68,26 @@ module EventMachine
         if sent
           # all the previous parts were queued, send
           # the last one
-          @socket.send_string(parts[-1], ZMQ::NOBLOCK)
+          ret = @socket.send_string(parts[-1], ZMQ::NOBLOCK)
+          if ret < 0
+            raise "Unable to send message: #{ZMQ::Util.error_string}"
+          end
         else
           # error while sending the previous parts
           # register the socket for writability
           self.notify_writable = true
           false
         end
+      end
+      
+      def getsockopt(opt)
+        ret = []
+        rc = @socket.getsockopt(opt, ret)
+        unless ZMQ::Util.resultcode_ok?(rc)
+          raise ZMQOperationFailed, "getsockopt: #{ZMQ::Util.error_string}"
+        end
+
+        (ret.size == 1) ? ret[0] : ret    
       end
       
       def setsockopt(opt, value)
@@ -143,13 +156,13 @@ module EventMachine
         end
       end
       def readable?
-        (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLIN) == ZMQ::POLLIN
+        (getsockopt(ZMQ::EVENTS) & ZMQ::POLLIN) == ZMQ::POLLIN
       end
 
       def writable?
         return true
         # ZMQ::EVENTS has issues in ZMQ HEAD, we'll ignore this till they're fixed
-        # (@socket.getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
+        # (getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
       end
      
     private
