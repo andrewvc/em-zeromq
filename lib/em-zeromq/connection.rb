@@ -76,8 +76,12 @@ module EventMachine
           # error while sending the previous parts
           # register the socket for writability
           self.notify_writable = true
-          false
+          sent = false
         end
+        
+        notify_readable()
+        
+        sent
       end
       
       def getsockopt(opt)
