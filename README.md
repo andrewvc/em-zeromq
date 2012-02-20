@@ -1,9 +1,9 @@
 # em-zeromq #
 
-## Call for a new maintainer ##
+## Current maintainer ##
 
-We currently need a new, active maintainer for this project as I no longer use it personally and don't have time to keep up with ZMQ upstream.
-If interested shoot me a message on github.
+This gem is currently maintained by schmurfy, it will stay here for now
+but may be moved to my account later.
 
 ## Description: ##
 

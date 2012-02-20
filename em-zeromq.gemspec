@@ -6,8 +6,8 @@ Gem::Specification.new do |s|
   s.name        = "em-zeromq"
   s.version     = EmZeromq::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["Andrew Cholakian"]
-  s.email       = ["andrew@andrewvc.com"]
+  s.authors     = ["Andrew Cholakian", "Julien Ammous"]
+  s.email       = ["schmurfy@gmail.com"]
   s.homepage    = "https://github.com/andrewvc/em-zeromq"
   s.summary     = %q{Low level event machine support for ZeroMQ}
   s.description = %q{Low level event machine support for ZeroMQ}
