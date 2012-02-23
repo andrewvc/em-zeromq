@@ -2,6 +2,11 @@ require 'rspec'
 require 'set'
 Thread.abort_on_exception = true
 
+if ENV['COVERAGE']
+  require 'simplecov'
+  SimpleCov.start
+end
+
 require File.expand_path(
     File.join(File.dirname(__FILE__), %w[.. lib em-zeromq]))
 

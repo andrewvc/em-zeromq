@@ -12,3 +12,4 @@ pkg
 Gemfile.lock
 pkg/*
 .rvmrc
+coverage/
