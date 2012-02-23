@@ -33,9 +33,10 @@ describe EventMachine::ZeroMQ do
   it "Should instantiate a connection given valid opts for Router/Dealer" do
     router_conn = nil
     run_reactor(1) do
-      router_conn = SPEC_CTX.bind(ZMQ::ROUTER, rand_addr, EMTestRouterHandler.new)
+      router_conn = SPEC_CTX.socket(ZMQ::ROUTER, EMTestRouterHandler.new)
+      router_conn.bind(rand_addr)
     end
-    router_conn.should be_a(EventMachine::ZeroMQ::Connection)
+    router_conn.should be_a(EventMachine::ZeroMQ::Socket)
   end
 
   describe "sending/receiving a single message via Router/Dealer" do
@@ -48,8 +49,13 @@ describe EventMachine::ZeroMQ do
         results[:router_hndlr] = router_hndlr = EMTestRouterHandler.new
 
         addr = rand_addr
-        dealer_conn = SPEC_CTX.bind(ZMQ::DEALER, addr, dealer_hndlr, :identity => "dealer1")
-        router_conn = SPEC_CTX.connect(ZMQ::ROUTER, addr, router_hndlr, :identity => "router1")
+        dealer_conn = SPEC_CTX.socket(ZMQ::DEALER, dealer_hndlr)
+        dealer_conn.identity = "dealer1"
+        dealer_conn.bind(addr)
+        
+        router_conn = SPEC_CTX.socket(ZMQ::ROUTER, router_hndlr)
+        router_conn.identity = "router1"
+        router_conn.connect(addr)
         
         EM::add_timer(0.1) do
           router_conn.send_msg('dealer1','', test_message)

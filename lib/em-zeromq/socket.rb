@@ -1,14 +1,13 @@
 module EventMachine
   module ZeroMQ
-    class Connection < EventMachine::Connection
+    class Socket < EventMachine::Connection
       attr_accessor :on_readable, :on_writable, :handler
-      attr_reader   :socket, :socket_type, :address
+      attr_reader   :socket, :socket_type      
 
-      def initialize(socket, socket_type, address, handler)
+      def initialize(socket, socket_type, handler)
         @socket      = socket
         @socket_type = socket_type
         @handler     = handler
-        @address     = address
       end
       
       def self.map_sockopt(opt, name)
@@ -140,7 +139,9 @@ module EventMachine
               end
             end
             
-            @handler.on_readable(self, msg_parts)
+            if @handler.respond_to?(:on_readable)
+              @handler.on_readable(self, msg_parts)
+            end
           else
             break
           end

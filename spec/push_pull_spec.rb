@@ -14,9 +14,10 @@ describe EventMachine::ZeroMQ do
   it "Should instantiate a connection given valid opts" do
     pull_conn = nil
     run_reactor do
-      pull_conn = SPEC_CTX.bind(ZMQ::PULL, rand_addr, EMTestPullHandler.new)
+      pull_conn = SPEC_CTX.socket(ZMQ::PULL, EMTestPullHandler.new)
+      pull_conn.bind(rand_addr)
     end
-    pull_conn.should be_a(EventMachine::ZeroMQ::Connection)
+    pull_conn.should be_a(EventMachine::ZeroMQ::Socket)
   end
 
   describe "sending/receiving a single message via PUB/SUB" do
@@ -25,9 +26,15 @@ describe EventMachine::ZeroMQ do
       @test_message = test_message = "TMsg#{rand(999)}"
       
       run_reactor(0.5) do
+        
+        address = rand_addr
+        
         results[:pull_hndlr] = pull_hndlr = EMTestPullHandler.new
-        pull_conn = SPEC_CTX.bind(ZMQ::PULL, rand_addr, pull_hndlr)
-        push_conn  = SPEC_CTX.connect(ZMQ::PUSH, pull_conn.address)
+        pull_conn = SPEC_CTX.socket(ZMQ::PULL, pull_hndlr)
+        pull_conn.bind(address)
+        
+        push_conn  = SPEC_CTX.socket(ZMQ::PUSH)
+        push_conn.connect(address)
         
         push_conn.socket.send_string test_message, ZMQ::NOBLOCK
         

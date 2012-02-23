@@ -13,11 +13,8 @@ describe 'Context' do
   
   it 'can create socket' do
     EM::run do
-      s1 = @ctx.bind(:router, 'tcp://127.0.0.1:5555')
-      s2 = @ctx.bind('router', 'tcp://127.0.0.1:5556')
-      s3 = @ctx.bind(ZMQ::ROUTER, 'tcp://127.0.0.1:5557')
-    
-      s1.instance_variable_get('@socket').name.should == 'ROUTER'
+      s = @ctx.socket(ZMQ::ROUTER)
+      s.instance_variable_get('@socket').name.should == 'ROUTER'
       EM::stop_event_loop
     end
   end

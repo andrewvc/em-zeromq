@@ -17,62 +17,34 @@ module EventMachine
           @context = ZMQ::Context.new(threads_or_context)
         end
       end
-
-      def bind(socket_type, address, handler = nil, opts = {})
-        create(socket_type, :bind, address, handler, opts)
-      end
-
-      def connect(socket_type, address, handler = nil, opts = {})
-        create(socket_type, :connect, address, handler, opts)
-      end
       
-      def create(socket_type, bind_or_connect, address, handler, opts = {})
-        socket_type = find_type(socket_type)
-        socket = @context.socket(socket_type)
-        
-        ident = opts.delete(:identity)
-        if ident
-          socket.setsockopt(ZMQ::IDENTITY, ident)
-        end
-        
-        unless opts.empty?
-          raise "unknown keys: #{opts.keys.join(', ')}"
-        end
-
-        if bind_or_connect == :bind
-          socket.bind(address)
-        else
-          socket.connect(address)
-        end
+      ##
+      # Create a socket in this context.
+      # 
+      # @param [Integer] socket_type One of ZMQ::REQ, ZMQ::REP, ZMQ::PULL, ZMQ::PUSH,
+      #   ZMQ::ROUTER, ZMQ::DEALER
+      # 
+      # @param [Object] handler an object which respond to on_readable(socket, parts)
+      #   and can respond to on_writeable(socket)
+      # 
+      def socket(socket_type, handler = nil)
+        zmq_socket = @context.socket(socket_type)
         
         fd = []
-        if socket.getsockopt(ZMQ::FD, fd) < 0
+        if zmq_socket.getsockopt(ZMQ::FD, fd) < 0
           raise "Unable to get socket FD: #{ZMQ::Util.error_string}"
         end
         
-        conn = EM.watch(fd[0], EventMachine::ZeroMQ::Connection, socket, socket_type, address, handler)
-
-        if READABLES.include?(socket_type)
-          conn.register_readable
-        end
         
-        if WRITABLES.include?(socket_type)
-          conn.register_writable
-        end
-
-        conn
-      end
-      
-    private
-      def find_type(type)
-        if type.is_a?(Symbol) or type.is_a?(String)
-          ZMQ.const_get(type.to_s.upcase)
-        else
-          type
+        EM.watch(fd[0], EventMachine::ZeroMQ::Socket, zmq_socket, socket_type, handler).tap do |s|
+          s.register_readable if READABLES.include?(socket_type)
+          s.register_writable if WRITABLES.include?(socket_type)
+          
+          yield(s) if block_given?
         end
       end
       
     end
-
+    
   end
 end
