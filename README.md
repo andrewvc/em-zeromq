@@ -11,18 +11,20 @@ EventMachine support for ZeroMQ
 
 ## Usage: ##
 
-Tested and functional with Rubinius, jRuby, and 1.9.2.
+Supported on:
+- MRI 1.9+
+- Rubinius
+- JRuby
 
-If using 1.9.2 you must `gem install ffi` before using.
-
-MRI 1.8.7 does not work with libzmq.
+While the gem should work on Rubinius and JRuby I mainly use it with MRI 1.9+ so
+there may be some glitchs.
 
 Want to help out? Ask!
 
-## Warning !! ##
+## Usage Warning ##
 
-To ensure your zeromq context won't be reclaimed by the ruby garbage collector you need
-to keep a reference to it in scope, this is what you don't want to do:
+To ensure your zeromq context won't be reclaimed by the garbage collector you need
+to keep a reference to it in scope, this is what you don't want to do (that's how the example used to be written):
 
 ```ruby
 EM.run do
@@ -35,8 +37,8 @@ end
 If you do this everything will appear to work fine at first but as soon as the garbage collector
 is triggered your context will get destroyed and your application will hang.
 
-The same should be true for references to socket.  
-It should not be a major problem anyway since code like above is only written for examples
+The same may be true for references to socket but I have no evidence of that.  
+It should not be a major problem anyway since code like above is only written for examples/tests
 but I just pulled my hair trying to figure out why my test code was not working so now you
 have been warned !
 
