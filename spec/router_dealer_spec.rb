@@ -23,11 +23,10 @@ describe EventMachine::ZeroMQ do
       @on_writable_callback.call(socket) if @on_writable_callback
     end
     def on_readable(socket, messages)
-      ident, delim, message = messages.map(&:copy_out_string)
-      ident.should == "dealer1"
-      @received += [ident, delim, message].map {|s| ZMQ::Message.new(s)}
+      _, message = messages.map(&:copy_out_string)
+      @received += [message].map {|s| ZMQ::Message.new(s)}
       
-      socket.send_msg(ident, delim, "re:#{message}")
+      socket.send_msg('', "re:#{message}")
     end
   end
 
@@ -44,16 +43,19 @@ describe EventMachine::ZeroMQ do
       results = {}
       @test_message = test_message = "M#{rand(999)}"
       
-      run_reactor(0.5) do
+      run_reactor(2) do
         results[:dealer_hndlr] = dealer_hndlr = EMTestDealerHandler.new
         results[:router_hndlr] = router_hndlr = EMTestRouterHandler.new
 
         addr = rand_addr
         dealer_conn = SPEC_CTX.bind(ZMQ::DEALER, addr, dealer_hndlr, :identity => "dealer1")
         router_conn = SPEC_CTX.connect(ZMQ::ROUTER, addr, router_hndlr, :identity => "router1")
-        router_conn.send_msg('x', test_message)
+        
+        EM::add_timer(0.1) do
+          router_conn.send_msg('dealer1','', test_message)
+        end
          
-        EM::Timer.new(0.1) do
+        EM::Timer.new(0.2) do
           results[:specs_ran] = true
         end
       end
