@@ -176,8 +176,8 @@ module EventMachine
 
       def get_message
         msg       = ZMQ::Message.new
-        msg_recvd = @socket.recv(msg, ZMQ::NOBLOCK)
-        msg_recvd ? msg : nil
+        msg_recvd = @socket.recvmsg(msg, ZMQ::NOBLOCK)
+        msg_recvd != -1 ? msg : nil
       end
       
       # Detaches the socket from the EM loop,
