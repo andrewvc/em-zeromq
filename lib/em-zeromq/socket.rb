@@ -139,9 +139,7 @@ module EventMachine
               end
             end
             
-            if @handler.respond_to?(:on_readable)
-              @handler.on_readable(self, msg_parts)
-            end
+            @handler.on_readable(self, msg_parts)
           else
             break
           end
