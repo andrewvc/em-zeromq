@@ -44,6 +44,12 @@ It should not be a major problem anyway since code like above is only written fo
 but I just pulled my hair trying to figure out why my test code was not working so now you
 have been warned !
 
+## Breaking changes: 0.2.x => 0.3.x ##
+
+Until the gem hit the 1.0 mark you should not use the "~>" operator in your Gemfile,
+lock yourself to the exact version you want. That said I will use the second digit to
+flag api changes but be aware that small changes can still occur between releases.
+
 
 ## Example ##
 ```ruby
