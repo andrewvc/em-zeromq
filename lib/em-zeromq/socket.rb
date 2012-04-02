@@ -114,25 +114,17 @@ module EventMachine
         # I'm leaving this is because its in the docs, but it could probably
         # be taken out.
         return unless readable?
-         
-        loop do
-          msg_parts = []
-          msg       = get_message
-          if msg
-            msg_parts << msg
-            while @socket.more_parts?
-              msg = get_message
-              if msg
-                msg_parts << msg
-              else
-                raise "Multi-part message missing a message!"
-              end
+
+        while (msg = get_message)
+          msg_parts = [msg]
+          while @socket.more_parts?
+            if (part = get_message)
+              msg_parts << part
+            else
+              raise "Multi-part message missing a message!"
             end
-            
-            emit(:message, *msg_parts)
-          else
-            break
           end
+          emit(:message, *msg_parts)
         end
       end
       
