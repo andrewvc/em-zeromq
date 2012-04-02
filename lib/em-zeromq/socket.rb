@@ -5,7 +5,7 @@ module EventMachine
 
       attr_reader   :socket, :socket_type      
 
-      def initialize(socket, socket_type, handler)
+      def initialize(socket, socket_type)
         @socket      = socket
         @socket_type = socket_type
       end

@@ -24,10 +24,8 @@ module EventMachine
       # @param [Integer] socket_type One of ZMQ::REQ, ZMQ::REP, ZMQ::PULL, ZMQ::PUSH,
       #   ZMQ::ROUTER, ZMQ::DEALER
       # 
-      # @param [Object] handler an object which respond to on_readable(socket, parts)
-      #   and can respond to on_writeable(socket)
       # 
-      def socket(socket_type, handler = nil)
+      def socket(socket_type)
         zmq_socket = @context.socket(socket_type)
         
         fd = []
@@ -35,8 +33,7 @@ module EventMachine
           raise "Unable to get socket FD: #{ZMQ::Util.error_string}"
         end
         
-        
-        EM.watch(fd[0], EventMachine::ZeroMQ::Socket, zmq_socket, socket_type, handler).tap do |s|
+        EM.watch(fd[0], EventMachine::ZeroMQ::Socket, zmq_socket, socket_type).tap do |s|
           s.register_readable if READABLES.include?(socket_type)
           s.register_writable if WRITABLES.include?(socket_type)
           
