@@ -102,10 +102,10 @@ module EventMachine
       def setsockopt(opt, value)
         @socket.setsockopt(opt, value)
       end
-      
-      # cleanup when ending loop
+
       def unbind
-        detach_and_close
+        detach
+        @socket.close
       end
 
       def notify_readable
@@ -157,20 +157,11 @@ module EventMachine
       end
      
     private
-    
-      # internal methods
 
       def get_message
         msg       = ZMQ::Message.new
         msg_recvd = @socket.recv(msg, ZMQ::NOBLOCK)
         msg_recvd != -1 ? msg : nil
-      end
-      
-      # Detaches the socket from the EM loop,
-      # then closes the socket
-      def detach_and_close
-        detach
-        @socket.close
       end
     end
   end
