@@ -7,8 +7,7 @@
 module EventMachine
   module ZeroMQ
     class Context
-      READABLES = [ ZMQ::SUB, ZMQ::PULL, ZMQ::ROUTER, ZMQ::DEALER, ZMQ::REP, ZMQ::REQ ]
-      WRITABLES = [ ZMQ::PUB, ZMQ::PUSH, ZMQ::ROUTER, ZMQ::DEALER, ZMQ::REP, ZMQ::REQ ]
+
       
       def initialize(threads_or_context)
         if threads_or_context.is_a?(ZMQ::Context)
@@ -33,12 +32,7 @@ module EventMachine
           raise "Unable to get socket FD: #{ZMQ::Util.error_string}"
         end
         
-        EM.watch(fd[0], EventMachine::ZeroMQ::Socket, zmq_socket, socket_type).tap do |s|
-          s.register_readable if READABLES.include?(socket_type)
-          s.register_writable if WRITABLES.include?(socket_type)
-          
-          yield(s) if block_given?
-        end
+        EM.watch(fd[0], EventMachine::ZeroMQ::Socket, zmq_socket, socket_type)
       end
       
     end

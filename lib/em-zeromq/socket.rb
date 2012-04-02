@@ -1,6 +1,9 @@
 module EventMachine
   module ZeroMQ
     class Socket < EventMachine::Connection
+      READABLES = [ ZMQ::SUB, ZMQ::PULL, ZMQ::ROUTER, ZMQ::DEALER, ZMQ::REP, ZMQ::REQ ]
+      WRITABLES = [ ZMQ::PUB, ZMQ::PUSH, ZMQ::ROUTER, ZMQ::DEALER, ZMQ::REP, ZMQ::REQ ]
+
       include EventEmitter
 
       attr_reader   :socket, :socket_type      
@@ -8,6 +11,8 @@ module EventMachine
       def initialize(socket, socket_type)
         @socket      = socket
         @socket_type = socket_type
+        register_readable if READABLES.include?(socket_type)
+        register_writable if WRITABLES.include?(socket_type)
       end
       
       def self.map_sockopt(opt, name)
@@ -101,22 +106,6 @@ module EventMachine
       def unbind
         detach_and_close
       end
-      
-      # Make this socket available for reads
-      def register_readable
-        # Since ZMQ is event triggered I think this is necessary
-        if readable?
-          notify_readable
-        end
-        # Subscribe to EM read notifications
-        self.notify_readable = true
-      end
-
-      # Trigger on_readable when socket is readable
-      def register_writable
-        # Subscribe to EM write notifications
-        self.notify_writable = true
-      end
 
       def notify_readable
         # Not sure if this is actually necessary. I suppose it prevents us
@@ -181,6 +170,22 @@ module EventMachine
       def detach_and_close
         detach
         @socket.close
+      end
+
+      # Make this socket available for reads
+      def register_readable
+        # Since ZMQ is event triggered I think this is necessary
+        if readable?
+          notify_readable
+        end
+        # Subscribe to EM read notifications
+        self.notify_readable = true
+      end
+
+      # Trigger on_readable when socket is readable
+      def register_writable
+        # Subscribe to EM write notifications
+        self.notify_writable = true
       end
     end
   end
