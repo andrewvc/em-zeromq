@@ -11,8 +11,9 @@ module EventMachine
       def initialize(socket, socket_type)
         @socket      = socket
         @socket_type = socket_type
-        register_readable if READABLES.include?(socket_type)
-        register_writable if WRITABLES.include?(socket_type)
+
+        self.notify_readable = true if READABLES.include?(socket_type)
+        self.notify_writable = true if WRITABLES.include?(socket_type)
       end
       
       def self.map_sockopt(opt, name)
@@ -170,22 +171,6 @@ module EventMachine
       def detach_and_close
         detach
         @socket.close
-      end
-
-      # Make this socket available for reads
-      def register_readable
-        # Since ZMQ is event triggered I think this is necessary
-        if readable?
-          notify_readable
-        end
-        # Subscribe to EM read notifications
-        self.notify_readable = true
-      end
-
-      # Trigger on_readable when socket is readable
-      def register_writable
-        # Subscribe to EM write notifications
-        self.notify_writable = true
       end
     end
   end
