@@ -115,16 +115,8 @@ module EventMachine
         # be taken out.
         return unless readable?
 
-        while (msg = get_message)
-          msg_parts = [msg]
-          while @socket.more_parts?
-            if (part = get_message)
-              msg_parts << part
-            else
-              raise "Multi-part message missing a message!"
-            end
-          end
-          emit(:message, *msg_parts)
+        while (message = get_message)
+          emit(:message, *message)
         end
       end
       
@@ -151,9 +143,9 @@ module EventMachine
     private
 
       def get_message
-        msg       = ZMQ::Message.new
-        msg_recvd = @socket.recv(msg, ZMQ::NOBLOCK)
-        msg_recvd != -1 ? msg : nil
+        parts = []
+        rc = @socket.recvmsgs(parts, ZMQ::NOBLOCK)
+        rc >= 0 ? parts : nil
       end
     end
   end
