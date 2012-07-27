@@ -30,7 +30,7 @@ to keep a reference to it in scope, this is what you don't want to do (that's ho
 ```ruby
 EM.run do
   context = EM::ZeroMQ::Context.new(1)
-  dealer_socket = context.sockt(...)
+  dealer_socket = context.socket(...)
   dealer_socket.connect(...)
   dealer_socket.send_msg('', "ping")
 end
