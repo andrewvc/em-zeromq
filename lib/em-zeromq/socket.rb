@@ -78,7 +78,7 @@ module EventMachine
           sent = false
         end
         
-        notify_readable()
+        EM::next_tick{ notify_readable() }
         
         sent
       end
