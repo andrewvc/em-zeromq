@@ -10,7 +10,7 @@ end
 require File.expand_path(
     File.join(File.dirname(__FILE__), %w[.. lib em-zeromq]))
 
-def run_reactor(time=0.2,&block)
+def run_reactor(time=0.1,&block)
   Thread.new do
     EM.run do
       yield
