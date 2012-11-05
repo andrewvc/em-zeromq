@@ -56,38 +56,36 @@ flag api changes but be aware that small changes can still occur between release
 require 'rubygems'
 require 'em-zeromq'
 
-class EMTestPullHandler
-  attr_reader :received
-  def on_readable(socket, parts)
-    parts.each do |m|
-      puts m.copy_out_string
-    end
-  end
-end
-
 trap('INT') do
   EM::stop()
 end
 
 ctx = EM::ZeroMQ::Context.new(1)
+
 EM.run do
   # setup push sockets
-  push_socket1 = ctx.socket(ZMQ::PUSH)  
+  push_socket1 = ctx.socket(ZMQ::PUSH)
+
   push_socket1.bind('tcp://127.0.0.1:2091')
   
-  push_socket2 = ctx.socket(ZMQ::PUSH) do |s|
-    s.bind('ipc:///tmp/a')
-  end
+  push_socket2 = ctx.socket(ZMQ::PUSH)
+  push_socket2.bind('ipc:///tmp/a')
   
   push_socket3 = ctx.socket(ZMQ::PUSH)
   push_socket3.bind('inproc://simple_test')
   
   # setup one pull sockets listening to all push sockets
-  pull_socket = ctx.socket(ZMQ::PULL, EMTestPullHandler.new)
+  pull_socket = ctx.socket(ZMQ::PULL)
   pull_socket.connect('tcp://127.0.0.1:2091')
   pull_socket.connect('ipc:///tmp/a')
   pull_socket.connect('inproc://simple_test')
   
+  pull_socket.on(:message) { |*parts|
+    parts.each do |m|
+      puts m.copy_out_string
+    end
+  }
+
   n = 0
   
   EM::PeriodicTimer.new(0.1) do
