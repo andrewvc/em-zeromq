@@ -8,10 +8,10 @@ zmq = EM::ZeroMQ::Context.new(1)
 
 EM.run {
   push = zmq.socket(ZMQ::PUSH)
-  push.connect("ipc:///tmp/foo")
+  push.connect("tcp://127.0.0.1:2091")
 
   pull = zmq.socket(ZMQ::PULL)
-  pull.bind("ipc:///tmp/foo")
+  pull.bind("tcp://127.0.0.1:2091")
 
   pull.on(:message) { |part|
     puts part.copy_out_string

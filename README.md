@@ -53,48 +53,25 @@ flag api changes but be aware that small changes can still occur between release
 
 ## Example ##
 ```ruby
-require 'rubygems'
 require 'em-zeromq'
 
-trap('INT') do
-  EM::stop()
-end
+zmq = EM::ZeroMQ::Context.new(1)
 
-ctx = EM::ZeroMQ::Context.new(1)
+EM.run {
+  push = zmq.socket(ZMQ::PUSH)
+  push.connect("tcp://127.0.0.1:2091")
 
-EM.run do
-  # setup push sockets
-  push_socket1 = ctx.socket(ZMQ::PUSH)
+  pull = zmq.socket(ZMQ::PULL)
+  pull.bind("tcp://127.0.0.1:2091")
 
-  push_socket1.bind('tcp://127.0.0.1:2091')
-  
-  push_socket2 = ctx.socket(ZMQ::PUSH)
-  push_socket2.bind('ipc:///tmp/a')
-  
-  push_socket3 = ctx.socket(ZMQ::PUSH)
-  push_socket3.bind('inproc://simple_test')
-  
-  # setup one pull sockets listening to all push sockets
-  pull_socket = ctx.socket(ZMQ::PULL)
-  pull_socket.connect('tcp://127.0.0.1:2091')
-  pull_socket.connect('ipc:///tmp/a')
-  pull_socket.connect('inproc://simple_test')
-  
-  pull_socket.on(:message) { |*parts|
-    parts.each do |m|
-      puts m.copy_out_string
-    end
+  pull.on(:message) { |part|
+    puts part.copy_out_string
   }
 
-  n = 0
-  
-  EM::PeriodicTimer.new(0.1) do
-    puts '.'
-    push_socket1.send_msg("t#{n += 1}_")
-    push_socket2.send_msg("i#{n += 1}_")
-    push_socket3.send_msg("p#{n += 1}_")
-  end
-end
+  EM.add_periodic_timer(1) {
+    push.send_msg("Hello")
+  }
+}
 ```
 
 ## License: ##
