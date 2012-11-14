@@ -1,13 +1,19 @@
 module EventMachine
   module ZeroMQ
     class Socket < EventMachine::Connection
-      attr_accessor :on_readable, :on_writable, :handler
+      READABLES = [ ZMQ::SUB, ZMQ::PULL, ZMQ::ROUTER, ZMQ::DEALER, ZMQ::REP, ZMQ::REQ, ZMQ::PAIR ]
+      WRITABLES = [ ZMQ::PUB, ZMQ::PUSH, ZMQ::ROUTER, ZMQ::DEALER, ZMQ::REP, ZMQ::REQ, ZMQ::PAIR ]
+
+      include EventEmitter
+
       attr_reader   :socket, :socket_type      
 
-      def initialize(socket, socket_type, handler)
+      def initialize(socket, socket_type)
         @socket      = socket
         @socket_type = socket_type
-        @handler     = handler
+
+        self.notify_readable = true if READABLES.include?(socket_type)
+        self.notify_writable = true if WRITABLES.include?(socket_type)
       end
       
       def self.map_sockopt(opt, name)
@@ -96,26 +102,10 @@ module EventMachine
       def setsockopt(opt, value)
         @socket.setsockopt(opt, value)
       end
-      
-      # cleanup when ending loop
-      def unbind
-        detach_and_close
-      end
-      
-      # Make this socket available for reads
-      def register_readable
-        # Since ZMQ is event triggered I think this is necessary
-        if readable?
-          notify_readable
-        end
-        # Subscribe to EM read notifications
-        self.notify_readable = true
-      end
 
-      # Trigger on_readable when socket is readable
-      def register_writable
-        # Subscribe to EM write notifications
-        self.notify_writable = true
+      def unbind
+        detach
+        @socket.close
       end
 
       def notify_readable
@@ -124,25 +114,9 @@ module EventMachine
         # I'm leaving this is because its in the docs, but it could probably
         # be taken out.
         return unless readable?
-         
-        loop do
-          msg_parts = []
-          msg       = get_message
-          if msg
-            msg_parts << msg
-            while @socket.more_parts?
-              msg = get_message
-              if msg
-                msg_parts << msg
-              else
-                raise "Multi-part message missing a message!"
-              end
-            end
-            
-            @handler.on_readable(self, msg_parts)
-          else
-            break
-          end
+
+        while (message = get_message)
+          emit(:message, *message)
         end
       end
       
@@ -154,9 +128,7 @@ module EventMachine
         # write events
         self.notify_writable = false
         
-        if @handler.respond_to?(:on_writable)
-          @handler.on_writable(self)
-        end
+        emit(:writable)
       end
       def readable?
         (getsockopt(ZMQ::EVENTS) & ZMQ::POLLIN) == ZMQ::POLLIN
@@ -169,20 +141,11 @@ module EventMachine
       end
      
     private
-    
-      # internal methods
 
       def get_message
-        msg       = ZMQ::Message.new
-        msg_recvd = @socket.recv(msg, ZMQ::NOBLOCK)
-        msg_recvd != -1 ? msg : nil
-      end
-      
-      # Detaches the socket from the EM loop,
-      # then closes the socket
-      def detach_and_close
-        detach
-        @socket.close
+        parts = []
+        rc = @socket.recvmsgs(parts, ZMQ::NOBLOCK)
+        rc >= 0 ? parts : nil
       end
     end
   end
