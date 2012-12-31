@@ -11,14 +11,10 @@ require File.expand_path(
     File.join(File.dirname(__FILE__), %w[.. lib em-zeromq]))
 
 def run_reactor(time=0.1,&block)
-  Thread.new do
-    EM.run do
-      yield
-    end
+  EM.run do
+    yield
+    EM.add_timer(time){EM.stop}
   end
-  sleep time
-  EM.stop rescue nil
-  sleep 0.1
 end
 
 USED_RAND_ADDRS = Set.new
