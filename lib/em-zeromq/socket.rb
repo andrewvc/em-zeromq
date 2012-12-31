@@ -21,8 +21,8 @@ module EventMachine
         define_method("#{name}="){|val| @socket.setsockopt(opt, val) }
       end
       
-      map_sockopt(ZMQ::HWM, :hwm)
-      map_sockopt(ZMQ::SWAP, :swap)
+      map_sockopt(ZMQ::HWM, :hwm) if defined?(ZMQ::HWM)
+      map_sockopt(ZMQ::SWAP, :swap) if defined?(ZMQ::SWAP)
       map_sockopt(ZMQ::IDENTITY, :identity)
       map_sockopt(ZMQ::AFFINITY, :affinity)
       map_sockopt(ZMQ::SNDBUF, :sndbuf)
@@ -31,7 +31,7 @@ module EventMachine
       # pgm
       map_sockopt(ZMQ::RATE, :rate)
       map_sockopt(ZMQ::RECOVERY_IVL, :recovery_ivl)
-      map_sockopt(ZMQ::MCAST_LOOP, :mcast_loop)
+      map_sockopt(ZMQ::MCAST_LOOP, :mcast_loop) if defined?(ZMQ::MCAST_LOOP)
       
       # User method
       def bind(address)
