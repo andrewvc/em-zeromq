@@ -64,8 +64,9 @@ module EventMachine
         
         # multipart
         parts[0...-1].each do |msg|
-          sent = @socket.send_string(msg, ZMQ::NOBLOCK | ZMQ::SNDMORE)
-          if sent == false
+          ret = @socket.send_string(msg, ZMQ::NOBLOCK | ZMQ::SNDMORE)
+          if ret < 0
+            sent = false
             break
           end
         end
@@ -81,7 +82,6 @@ module EventMachine
           # error while sending the previous parts
           # register the socket for writability
           self.notify_writable = true
-          sent = false
         end
         
         EM::next_tick{ notify_readable() }
