@@ -76,7 +76,7 @@ module EventMachine
           # the last one
           ret = @socket.send_string(parts[-1], ZMQ::NOBLOCK)
           if ret < 0
-            raise "Unable to send message: #{ZMQ::Util.error_string}"
+            sent = false
           end
         else
           # error while sending the previous parts
