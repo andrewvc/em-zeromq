@@ -18,7 +18,7 @@ module EventMachine
       
       def self.map_sockopt(opt, name)
         define_method(name){ getsockopt(opt) }
-        define_method("#{name}="){|val| @socket.setsockopt(opt, val) }
+        define_method("#{name}="){|val| setsockopt(opt, val) }
       end
       
       map_sockopt(ZMQ::HWM, :hwm) if defined?(ZMQ::HWM)
