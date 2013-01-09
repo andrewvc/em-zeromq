@@ -6,7 +6,7 @@ module EventMachine
 
       include EventEmitter
 
-      attr_reader   :socket, :socket_type      
+      attr_reader   :socket, :socket_type
 
       def initialize(socket, socket_type)
         @socket      = socket
@@ -15,43 +15,53 @@ module EventMachine
         self.notify_readable = true if READABLES.include?(socket_type)
         self.notify_writable = true if WRITABLES.include?(socket_type)
       end
-      
+
       def self.map_sockopt(opt, name)
         define_method(name){ getsockopt(opt) }
-        define_method("#{name}="){|val| @socket.setsockopt(opt, val) }
+        define_method("#{name}="){|val| setsockopt(opt, val) }
       end
-      
-      map_sockopt(ZMQ::HWM, :hwm)
-      map_sockopt(ZMQ::SWAP, :swap)
+
+      if defined?(ZMQ::HWM)
+        map_sockopt(ZMQ::HWM, :hwm)
+      else
+        map_sockopt(ZMQ::SNDHWM, :sndhwm)
+        map_sockopt(ZMQ::RCVHWM, :rcvhwm)
+        def hwm=(val)
+          self.sndhwm = val
+          self.rcvhwm = val
+        end
+      end
+
+      map_sockopt(ZMQ::SWAP, :swap) if defined?(ZMQ::SWAP)
       map_sockopt(ZMQ::IDENTITY, :identity)
       map_sockopt(ZMQ::AFFINITY, :affinity)
       map_sockopt(ZMQ::SNDBUF, :sndbuf)
       map_sockopt(ZMQ::RCVBUF, :rcvbuf)
-      
+
       # pgm
       map_sockopt(ZMQ::RATE, :rate)
       map_sockopt(ZMQ::RECOVERY_IVL, :recovery_ivl)
-      map_sockopt(ZMQ::MCAST_LOOP, :mcast_loop)
-      
+      map_sockopt(ZMQ::MCAST_LOOP, :mcast_loop) if defined?(ZMQ::MCAST_LOOP)
+
       # User method
       def bind(address)
         @socket.bind(address)
       end
-      
+
       def connect(address)
         @socket.connect(address)
       end
-      
+
       def subscribe(what = '')
         raise "only valid on sub socket type (was #{@socket.name})" unless @socket.name == 'SUB'
         @socket.setsockopt(ZMQ::SUBSCRIBE, what)
       end
-      
+
       def unsubscribe(what)
         raise "only valid on sub socket type (was #{@socket.name})" unless @socket.name == 'SUB'
         @socket.setsockopt(ZMQ::UNSUBSCRIBE, what)
       end
-      
+
       # send a non blocking message
       # parts:  if only one argument is given a signle part message is sent
       #         if more than one arguments is given a multipart message is sent
@@ -61,34 +71,34 @@ module EventMachine
       def send_msg(*parts)
         parts = Array(parts[0]) if parts.size == 0
         sent = true
-        
+
         # multipart
         parts[0...-1].each do |msg|
-          sent = @socket.send_string(msg, ZMQ::NOBLOCK | ZMQ::SNDMORE)
-          if sent == false
+          ret = @socket.send_string(msg, ZMQ::NOBLOCK | ZMQ::SNDMORE)
+          if ret < 0
+            sent = false
             break
           end
         end
-        
+
         if sent
           # all the previous parts were queued, send
           # the last one
           ret = @socket.send_string(parts[-1], ZMQ::NOBLOCK)
           if ret < 0
-            raise "Unable to send message: #{ZMQ::Util.error_string}"
+            sent = false
           end
         else
           # error while sending the previous parts
           # register the socket for writability
           self.notify_writable = true
-          sent = false
         end
-        
+
         EM::next_tick{ notify_readable() }
-        
+
         sent
       end
-      
+
       def getsockopt(opt)
         ret = []
         rc = @socket.getsockopt(opt, ret)
@@ -96,9 +106,9 @@ module EventMachine
           raise ZMQOperationFailed, "getsockopt: #{ZMQ::Util.error_string}"
         end
 
-        (ret.size == 1) ? ret[0] : ret    
+        (ret.size == 1) ? ret[0] : ret
       end
-      
+
       def setsockopt(opt, value)
         @socket.setsockopt(opt, value)
       end
@@ -119,15 +129,15 @@ module EventMachine
           emit(:message, *message)
         end
       end
-      
+
       def notify_writable
         return unless writable?
-        
+
         # one a writable event is successfully received the socket
         # should be accepting messages again so stop triggering
         # write events
         self.notify_writable = false
-        
+
         emit(:writable)
       end
       def readable?
@@ -139,7 +149,7 @@ module EventMachine
         # ZMQ::EVENTS has issues in ZMQ HEAD, we'll ignore this till they're fixed
         # (getsockopt(ZMQ::EVENTS) & ZMQ::POLLOUT) == ZMQ::POLLOUT
       end
-     
+
     private
 
       def get_message
