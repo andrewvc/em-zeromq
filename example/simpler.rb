@@ -15,6 +15,7 @@ EM.run {
 
   pull.on(:message) { |part|
     puts part.copy_out_string
+    part.close
   }
 
   EM.add_periodic_timer(1) {

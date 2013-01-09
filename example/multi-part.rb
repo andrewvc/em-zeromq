@@ -13,10 +13,13 @@ EM.run {
 
   pull.on(:message) { |part1, part2|
     p [:part1, part1.copy_out_string, :part2, part2.copy_out_string]
+    part1.close
+    part2.close
   }
 
   pull.on(:message) { |*parts|
     p [:parts, parts.map(&:copy_out_string)]
+    parts.each(&:close)
   }
 
   push = zmq.socket(ZMQ::PUSH)
