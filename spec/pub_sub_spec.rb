@@ -18,7 +18,7 @@ describe EventMachine::ZeroMQ do
       @received = []
       @test_message = test_message = "TMsg#{rand(999)}"
       
-      run_reactor do
+      run_reactor(0.2) do
         address = rand_addr
         
         sub_conn  = SPEC_CTX.socket(ZMQ::SUB)
@@ -31,9 +31,9 @@ describe EventMachine::ZeroMQ do
         pub_conn  = SPEC_CTX.socket(ZMQ::PUB)
         pub_conn.connect(address)
         
-        pub_conn.socket.send_string test_message, ZMQ::NOBLOCK
-        
-        EM::Timer.new(0.1) { @results[:specs_ran] = true }
+        EM::Timer.new(0.1) do
+          pub_conn.socket.send_string test_message, ZMQ::NOBLOCK
+        end
       end
     end
   

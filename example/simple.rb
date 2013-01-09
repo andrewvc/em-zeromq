@@ -36,6 +36,7 @@ EM.run do
   pull_socket.on(:message) { |*parts|
     parts.each do |m|
       puts m.copy_out_string
+      m.close
     end
   }
 
