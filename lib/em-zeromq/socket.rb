@@ -51,6 +51,10 @@ module EventMachine
       def connect(address)
         @socket.connect(address)
       end
+      
+      def disconnect(address)
+        @socket.disconnect(address)
+      end
 
       def subscribe(what = '')
         raise "only valid on sub socket type (was #{@socket.name})" unless @socket.name == 'SUB'
