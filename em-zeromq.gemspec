@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'eventmachine', '>= 1.0.0'
   s.add_dependency 'ffi', '>= 1.0.0'
-  s.add_dependency 'ffi-rzmq', '~> 1.0.1'
+  s.add_dependency 'ffi-rzmq', '~> 2.0.1'
 
   s.add_development_dependency 'rspec', '>= 2.5.0'
   s.add_development_dependency 'simplecov'
