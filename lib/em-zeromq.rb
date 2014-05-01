@@ -3,7 +3,7 @@ require 'ffi-rzmq'
 
 # compatibilty hacks for zmq 2.x/3.x
 module ZMQ
-  if LibZMQ.version3?
+  unless defined?(NOBLOCK)
     NOBLOCK = DONTWAIT
   end
 end
